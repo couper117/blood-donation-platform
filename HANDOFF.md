@@ -218,3 +218,22 @@ a CRITICAL LANGUAGE RULE at the TOP of the system prompt (appending at the end w
 ignored by Gemini Flash - tested). LIVE-verified: French + Kinyarwanda + English replies.
 Known limits (documented to user): composed strings with numbers stay English, offline
 fallback bot is English-only, Kinyarwanda is best-effort and should get native review.
+
+## Round 9: mobile/responsive audit + fixes (CSS-only, ?v=3)
+Chrome extension STILL not connectable - fixes come from a systematic CSS audit at
+320/460/768px, not visual inspection; user must eyeball-verify. Fixed:
+1. Header: space-between stranded the hamburger mid-header on phones once .nav collapsed.
+   Now flex-start + .brand{margin-right:auto} + explicit flex order (nav 5, bell 6,
+   hamburger 7) so controls cluster at the right on all screens regardless of JS
+   injection order.
+2. Profile: the <=460 media query was wiping profile-body's 58px top padding -> avatar
+   overlapped the name. Restored + smaller 84px avatar + tighter stats on phones.
+3. Audit log/history rows: flex-wrap + overflow-wrap:anywhere (long JSON details
+   overflowed the card).
+4. .hosp-card p overflow-wrap; .hosp-top flex-wrap (long names + chips).
+5. .setting-row flex-wrap (Settings on narrow phones).
+6. Mobile nav dropdown: max-height + overflow-y (short/landscape screens).
+7. Board toolbar selects get flex-basis so filters form tidy rows on phones.
+8. Phone grid tuning at <=460: hosp-grid/plan-grid 1 col, dash-grid/stats-row 2 cols,
+   smaller h1/timer.
+Cache-busted to style.css?v=3 across all pages. Not committed yet (user commits on ask).

@@ -89,15 +89,23 @@ a { color: var(--red); }
   z-index: 40;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  /* flex-start + margin-right:auto on the brand keeps the controls
+     (nav / bell / hamburger) clustered at the RIGHT edge on every
+     screen size - space-between would strand the hamburger in the
+     middle on phones once the nav collapses. */
+  justify-content: flex-start;
+  gap: 10px;
   padding: 10px clamp(16px, 4vw, 40px);
   background: color-mix(in srgb, var(--surface) 88%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
-.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; margin-right: auto; min-width: 0; }
+/* Fixed ordering regardless of injection order: nav, bell, hamburger. */
+.site-header .nav { order: 5; }
+.site-header .notif-wrap { order: 6; }
+.site-header .nav-toggle { order: 7; }
 .brand-mark {
   width: 20px; height: 20px; flex-shrink: 0;
   border-radius: 50% 50% 50% 0;
@@ -204,7 +212,9 @@ a { color: var(--red); }
     right: 12px;
     flex-direction: column;
     align-items: stretch;
-    min-width: 220px;
+    min-width: 230px;
+    max-height: calc(100vh - 100px); /* scrolls on short screens */
+    overflow-y: auto;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -516,7 +526,8 @@ a { color: var(--red); }
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .hosp-card:hover { border-color: var(--border-strong); }
-.hosp-top { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+.hosp-card p { overflow-wrap: break-word; } /* long emails/notes never overflow the card */
+.hosp-top { display: flex; justify-content: space-between; align-items: start; gap: 10px; flex-wrap: wrap; }
 .hosp-top h3 { font-size: 1rem; overflow-wrap: break-word; min-width: 0; }
 .hosp-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 .req-card { border-left: 4px solid var(--red); }
@@ -525,6 +536,8 @@ a { color: var(--red); }
 .board-toolbar { align-items: stretch; }
 .board-toolbar input, .board-toolbar select { min-width: 0; }
 .board-toolbar input { flex: 1 1 220px; }
+.board-toolbar select { flex: 1 1 150px; }
+.board-toolbar .count-pill { align-items: center; }
 
 .dir-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 6px 0 2px; }
 .count-pill {
@@ -626,7 +639,12 @@ a { color: var(--red); }
 .dash-item .k { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 620; }
 .dash-item .v { font-weight: 700; font-size: 1.05rem; margin-top: 3px; overflow-wrap: break-word; }
 .history-list { list-style: none; margin-top: 10px; }
-.history-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.history-list li {
+  display: flex; justify-content: space-between; gap: 8px;
+  flex-wrap: wrap; /* long entries (e.g. the audit log) wrap instead of overflowing */
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.history-list li > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 .dash-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 
 /* Profile header - each role gets its own cover */
@@ -699,7 +717,8 @@ a { color: var(--red); }
 .sales-row .bar-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--green)); }
 
 /* ===== Settings ===== */
-.setting-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px 0; border-bottom: 1px solid var(--border); }
+.setting-row { display: flex; justify-content: space-between; align-items: center; gap: 12px 16px; flex-wrap: wrap; padding: 15px 0; border-bottom: 1px solid var(--border); }
+.setting-row > div:first-child { min-width: 0; flex: 1 1 220px; }
 .setting-row:last-child { border-bottom: none; }
 .setting-row .s-desc { color: var(--muted); font-size: 0.87rem; margin-top: 2px; }
 .switch { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
@@ -825,14 +844,24 @@ a { color: var(--red); }
 /* Small phones: keep the long brand name and the two floating
    buttons from colliding or overflowing. */
 @media (max-width: 460px) {
-  .brand { font-size: 0.95rem; min-width: 0; }
+  .brand { font-size: 0.95rem; }
   .brand-name { white-space: normal; line-height: 1.15; }
   .fab { padding: 11px 14px; font-size: 0.85rem; bottom: 16px; }
   .emergency-fab { left: 12px; }
   .chat-fab { right: 12px; }
   .panel { padding: 20px 16px; }
-  .profile-body { padding: 0 18px 22px; }
+  /* Keep the 58px top padding: the profile photo hangs 44px below the
+     cover, and without this space it overlaps the name. */
+  .profile-body { padding: 58px 18px 22px; }
+  .profile-avatar-lg { left: 18px; width: 84px; height: 84px; font-size: 1.7rem; }
+  .profile-stats { gap: 18px; }
   .map-canvas { height: 380px; }
+  .page-head h1 { font-size: 1.55rem; }
+  .hosp-grid { grid-template-columns: 1fr; } /* one clean column on phones */
+  .plan-grid { grid-template-columns: 1fr; }
+  .dash-grid { grid-template-columns: 1fr 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .timer-display { font-size: 3rem; }
 }
 
 /* ===== Respect the visitor's reduced-motion preference ===== */
