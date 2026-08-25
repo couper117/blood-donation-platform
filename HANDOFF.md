@@ -203,3 +203,18 @@ on overload (3.7-flash was busy -> 3.6-flash answered). LIVE-verified: Gemini ch
 correct role-aware answers (single + multi-turn); Paypack auth accepted the credentials
 (token received, no money moved). Remaining live test for the user: one real small MoMo
 payment. ADMIN_PASSWORD in .env is still literally "admin1234" - flagged to change.
+
+## Round 8: global language system
+i18n.js rebuilt as a WHOLE-PAGE engine: alongside the key-based data-i18n layer there is
+now a string table S (exact English -> {fr, rw}, ~250 entries covering nav, buttons,
+forms, labels, statuses, board/dashboard/medicines/health/services/subscribe UI,
+notification bell + chat UI, footers) plus S_PREFIX rules for composed strings
+("Contact: ..."). Engine walks all text nodes + placeholder/title/aria-label attrs,
+remembers originals in WeakMaps (so any-direction language switching re-translates from
+English), and a MutationObserver translates JS-rendered content the moment it appears.
+English is the automatic fallback for anything untranslated. The AI now replies in the
+chosen language: client sends lang (db.js chat(messages, lang), widgets.js), server puts
+a CRITICAL LANGUAGE RULE at the TOP of the system prompt (appending at the end was
+ignored by Gemini Flash - tested). LIVE-verified: French + Kinyarwanda + English replies.
+Known limits (documented to user): composed strings with numbers stay English, offline
+fallback bot is English-only, Kinyarwanda is best-effort and should get native review.

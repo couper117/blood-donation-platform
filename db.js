@@ -217,8 +217,9 @@ const DB = {
   async adminAudit() { return api("GET", "/api/admin/audit"); },
 
   /* ---------------- AI chat ---------------- */
-  /* Returns {configured, reply}. configured:false = fall back to the offline helper. */
-  async chat(messages) { return api("POST", "/api/chat", { messages }); }
+  /* Returns {configured, reply}. configured:false = fall back to the offline
+     helper. `lang` makes the AI answer in the site's chosen language. */
+  async chat(messages, lang) { return api("POST", "/api/chat", { messages, lang }); }
 };
 
 /* Friendly warning if the site is opened by double-clicking the HTML

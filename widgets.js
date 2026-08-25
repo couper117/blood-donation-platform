@@ -142,7 +142,8 @@ function initChatWidget() {
       const typing = addMsg("...", "bot");
       let reply = null;
       try {
-        const out = await DB.chat(history);
+        const lang = (typeof getSettings === "function") ? getSettings().language : "en";
+        const out = await DB.chat(history, lang);
         if (out && out.configured && out.reply) { reply = out.reply; setStatus(true); }
         else setStatus(false);
       } catch (e) {

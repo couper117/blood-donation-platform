@@ -1663,10 +1663,18 @@ app.post("/api/chat", async (req, res) => {
   }
   // Tailor guidance to who is asking (donor / hospital / pharmacy / admin).
   const a = accountFor(req);
-  const roleLine = a
+  let roleLine = a
     ? "\n\nThe person you are talking to is logged in as a " + a.role +
       (a.record && (a.record.name || a.record.fullName) ? " (" + (a.record.name || a.record.fullName) + ")" : "") +
       ". Tailor your guidance to what a " + a.role + " can actually do on this platform."
+    : "";
+  // Answer in the language the visitor chose in Settings. This goes at
+  // the very TOP of the system prompt so the model cannot miss it.
+  const LANG_NAMES = { fr: "French", rw: "Kinyarwanda" };
+  const langPrefix = LANG_NAMES[req.body.lang]
+    ? "CRITICAL LANGUAGE RULE: You MUST write your ENTIRE reply in " + LANG_NAMES[req.body.lang] +
+      " - even when the user's question is written in English or any other language. The visitor chose " +
+      LANG_NAMES[req.body.lang] + " as their website language. Never reply in English.\n\n"
     : "";
 
   try {
@@ -1676,12 +1684,13 @@ app.post("/api/chat", async (req, res) => {
         role: m.role === "assistant" ? "model" : "user",
         parts: [{ text: m.content }]
       }));
-      const reply = await geminiGenerate(CHAT_SYSTEM + roleLine, contents, 1024);
+      const reply = await geminiGenerate(langPrefix + CHAT_SYSTEM + roleLine, contents, 1024);
       return res.json({ configured: true, reply: reply || "Sorry, I could not come up with an answer - please try rephrasing." });
     }
 
     // Anthropic Claude.
     const system = [{ type: "text", text: CHAT_SYSTEM, cache_control: { type: "ephemeral" } }];
+    if (langPrefix) system.push({ type: "text", text: langPrefix.trim() });
     if (roleLine) system.push({ type: "text", text: roleLine.trim() });
     const response = await anthropic.beta.messages.create({
       model: "claude-opus-5",
