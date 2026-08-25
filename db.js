@@ -173,15 +173,24 @@ const DB = {
   async addDroneRequest(fields) { return api("POST", "/api/drone-requests", fields); },
   async getDroneRequests() { return api("GET", "/api/drone-requests"); },
 
-  /* ---------------- Payments (real - Flutterwave) ---------------- */
-  async paymentsConfigured() {
-    try { return (await api("GET", "/api/payments/config")).configured; }
-    catch (e) { return false; }
+  /* ---------------- Payments (real - Paypack or Flutterwave) ---------------- */
+  async paymentsConfig() {
+    try { return await api("GET", "/api/payments/config"); }
+    catch (e) { return { configured: false, provider: null }; }
   },
-  /* Starts a real payment and sends the browser to the secure checkout page. */
+  /* Start a payment; the caller decides what to do with the response
+     (Paypack: poll status; Flutterwave: redirect to out.link). */
+  async initiatePayment(intent) {
+    return api("POST", "/api/payments/initiate", intent);
+  },
+  async paymentStatus(txRef) {
+    return api("GET", "/api/payments/status/" + encodeURIComponent(txRef));
+  },
+  /* Flutterwave-style redirect start (kept for that provider). */
   async startPayment(intent) {
     const out = await api("POST", "/api/payments/initiate", intent);
-    window.location.href = out.link;
+    if (out.link) window.location.href = out.link;
+    return out;
   },
 
   /* ---------------- Funds / feedback / emergency ---------------- */

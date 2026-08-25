@@ -171,3 +171,35 @@ User pasted a full production spec and said hosting will be Vercel+Railway. Impl
   possible later (needs CORS + absolute API URLs).
 All tested via curl (offers privacy, trial start/access/map visibility, magic-byte
 rejection, duplicate flagging, stats, notifications read, audit). DB reset after tests.
+
+## Round 7 (2026-08-25): Paypack payments + free Gemini AI (user's choice via question)
+- PAYMENTS: Paypack (docs.paypack.rw - verified public docs) is now the PRIMARY provider
+  (PAYPACK_CLIENT_ID/SECRET in .env; PAY_PROVIDER auto-picks paypack > flutterwave > none).
+  Flow: client payFlow() asks for the MoMo number in a modal (askMomoNumber), POST
+  /api/payments/initiate does Paypack cashin {amount, number} (auth via /auth/agents/
+  authorize, 10-min token cache), customer approves the USSD prompt on their phone, client
+  polls GET /api/payments/status/:txRef every 3s; settlePaypack() verifies with
+  /transactions/find/{ref} and applies idempotently. applyIntent() extracted from
+  settlePayment so both providers share the same settlement + notifications. Hourly
+  checkPendingPaypack() settles payments where the buyer closed the browser. Phone
+  normalization to 07XXXXXXXX. Flutterwave redirect flow kept as fallback provider.
+  All 4 pay call-sites (subscribe, funds, medicines, dashboard order) now use payFlow
+  with ?payment=success redirects. Tested: config endpoint, honest 503 without keys,
+  phone validation, honest auth failure with fake creds ("agent not found").
+- FREE AI: Google Gemini is now the primary AI when GEMINI_API_KEY set (free tier,
+  aistudio.google.com); Anthropic used only as fallback when no Gemini key. Boot-time
+  model discovery via ListModels picks the best non-preview flash model (GEMINI_MODEL
+  env can pin). geminiGenerate() helper; chat (system+roleLine as system_instruction,
+  assistant->model role mapping) and aiVerifyDocument (inline_data for images AND PDFs)
+  both support it. 429 -> friendly free-tier message; 400/401/403 -> configured:false.
+- NOTE: the user has created a real .env (custom ADMIN_PASSWORD present; their
+  ANTHROPIC_API_KEY appears invalid - chat returns configured:false). They will add
+  GEMINI_API_KEY + Paypack keys next. README/.env.example updated accordingly.
+
+## Round 7b: keys installed and LIVE-verified
+User pasted real keys into .env.example; moved them to .env (git-ignored) and scrubbed
+the template. Gemini discovery upgraded to a RANKED model list with automatic fallback
+on overload (3.7-flash was busy -> 3.6-flash answered). LIVE-verified: Gemini chat gives
+correct role-aware answers (single + multi-turn); Paypack auth accepted the credentials
+(token received, no money moved). Remaining live test for the user: one real small MoMo
+payment. ADMIN_PASSWORD in .env is still literally "admin1234" - flagged to change.

@@ -71,7 +71,14 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 const PUBLIC_URL = (process.env.PUBLIC_URL || "http://localhost:" + PORT).replace(/\/$/, "");
 const FLW_SECRET_KEY = process.env.FLW_SECRET_KEY || "";
 const FLW_WEBHOOK_HASH = process.env.FLW_WEBHOOK_HASH || "";
+const PAYPACK_CLIENT_ID = process.env.PAYPACK_CLIENT_ID || "";
+const PAYPACK_CLIENT_SECRET = process.env.PAYPACK_CLIENT_SECRET || "";
+const PAYPACK_MODE = process.env.PAYPACK_MODE || "production";
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || "";
+const GEMINI_KEY = process.env.GEMINI_API_KEY || "";
+/* Which payment provider is active: Paypack wins if configured. */
+const PAY_PROVIDER = (PAYPACK_CLIENT_ID && PAYPACK_CLIENT_SECRET) ? "paypack"
+  : FLW_SECRET_KEY ? "flutterwave" : null;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin1234";
 const SESSION_MAX_MS = 30 * 24 * 60 * 60 * 1000; // sessions expire after 30 days
 const FUNDS_BASELINE = 6450000; // RWF already raised before this site went live
@@ -537,28 +544,36 @@ app.post("/api/upload", (req, res) => {
    document type. Sets docStatus to "ai-passed" or "needs-review"; any
    error leaves it "pending" for normal human review. */
 async function aiVerifyDocument(fname, kind, mediaType, base64) {
-  if (!anthropic) return;
+  if (!GEMINI_KEY && !anthropic) return;
   const expected = kind === "screening"
     ? "a blood screening / laboratory blood test certificate"
     : "a doctor's medical prescription";
-  const filePart = mediaType === "application/pdf"
-    ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } }
-    : { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } };
-  const response = await anthropic.beta.messages.create({
-    model: "claude-opus-5",
-    max_tokens: 300, // a short structured verdict
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    messages: [{
+  const instruction =
+    "You are screening an upload for a health platform. The uploader claims this is " + expected + ". " +
+    "Judge only whether the document PLAUSIBLY matches that type and is readable. Do not try to verify medical facts. " +
+    'Reply with ONLY this JSON: {"matches_type": true|false, "readable": true|false, "concerns": "<one short sentence, empty if none>"}';
+
+  let text;
+  if (GEMINI_KEY) {
+    // Gemini reads images and PDFs the same way: inline base64 data.
+    text = await geminiGenerate("You screen document uploads and reply with strict JSON only.", [{
       role: "user",
-      content: [filePart, { type: "text", text:
-        "You are screening an upload for a health platform. The uploader claims this is " + expected + ". " +
-        "Judge only whether the document PLAUSIBLY matches that type and is readable. Do not try to verify medical facts. " +
-        'Reply with ONLY this JSON: {"matches_type": true|false, "readable": true|false, "concerns": "<one short sentence, empty if none>"}' }]
-    }]
-  });
-  if (response.stop_reason === "refusal") return;
-  const text = response.content.filter(b => b.type === "text").map(b => b.text).join("");
+      parts: [{ inline_data: { mime_type: mediaType, data: base64 } }, { text: instruction }]
+    }], 300);
+  } else {
+    const filePart = mediaType === "application/pdf"
+      ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } }
+      : { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } };
+    const response = await anthropic.beta.messages.create({
+      model: "claude-opus-5",
+      max_tokens: 300, // a short structured verdict
+      betas: ["server-side-fallback-2026-07-01"],
+      fallbacks: "default",
+      messages: [{ role: "user", content: [filePart, { type: "text", text: instruction }] }]
+    });
+    if (response.stop_reason === "refusal") return;
+    text = response.content.filter(b => b.type === "text").map(b => b.text).join("");
+  }
   const jsonMatch = /\{[\s\S]*\}/.exec(text);
   if (!jsonMatch) return;
   let verdict;
@@ -1204,8 +1219,64 @@ app.get("/api/admin/audit", (req, res) => {
    ============================================================ */
 const FLW_API = "https://api.flutterwave.com/v3";
 
+/* ---------------- Paypack (paypack.rw) ----------------
+   Rwandan mobile-money payments: we call "cashin" with the customer's
+   MTN/Airtel number, they approve the prompt on their phone, and we
+   poll the transaction until it is successful or failed. Docs:
+   https://docs.paypack.rw  */
+const PAYPACK_API = "https://payments.paypack.rw/api";
+let _paypackToken = null;
+let _paypackTokenAt = 0;
+
+async function paypackToken() {
+  // Tokens last ~15 minutes; re-authorise after 10 to stay safe.
+  if (_paypackToken && Date.now() - _paypackTokenAt < 10 * 60 * 1000) return _paypackToken;
+  const res = await fetch(PAYPACK_API + "/auth/agents/authorize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ client_id: PAYPACK_CLIENT_ID, client_secret: PAYPACK_CLIENT_SECRET })
+  });
+  const data = await res.json();
+  if (!res.ok || !data.access) {
+    console.error("Paypack auth failed:", data.message || res.status);
+    throw new Error("Could not connect to the payment provider.");
+  }
+  _paypackToken = data.access;
+  _paypackTokenAt = Date.now();
+  return _paypackToken;
+}
+
+async function paypackFetch(method, pathPart, body) {
+  const token = await paypackToken();
+  const res = await fetch(PAYPACK_API + pathPart, {
+    method,
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "X-Webhook-Mode": PAYPACK_MODE
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.message || ("Payment provider error " + res.status));
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+/* Accepts 078..., +250 78..., 25078... and returns 07XXXXXXXX (or null). */
+function normalizeRwPhone(raw) {
+  let p = String(raw || "").replace(/[^\d]/g, "");
+  if (p.length === 12 && p.indexOf("250") === 0) p = "0" + p.slice(3);
+  if (p.length === 9 && p[0] === "7") p = "0" + p;
+  return /^07\d{8}$/.test(p) ? p : null;
+}
+
 app.get("/api/payments/config", (req, res) => {
-  res.json({ configured: !!FLW_SECRET_KEY });
+  res.json({ configured: !!PAY_PROVIDER, provider: PAY_PROVIDER });
 });
 
 app.post("/api/payments/initiate", async (req, res) => {
@@ -1255,17 +1326,36 @@ app.post("/api/payments/initiate", async (req, res) => {
   }
 
   // Everything about the request is valid - now the provider must be configured.
-  if (!FLW_SECRET_KEY) {
+  if (!PAY_PROVIDER) {
     return res.status(503).json({
       configured: false,
-      error: "Online payment is not configured yet. The site owner must add a Flutterwave FLW_SECRET_KEY to the .env file (see .env.example). No payment was taken."
+      error: "Online payment is not configured yet. The site owner must add Paypack keys (PAYPACK_CLIENT_ID / PAYPACK_CLIENT_SECRET) or a Flutterwave key to the .env file (see .env.example). No payment was taken."
     });
   }
 
   const txRef = "bdc-" + Date.now() + "-" + crypto.randomBytes(4).toString("hex");
-  db.prepare("INSERT INTO payments (txRef, json) VALUES (?, ?)")
-    .run(txRef, JSON.stringify(Object.assign({ status: "pending", createdOn: new Date().toISOString() }, intent)));
 
+  if (PAY_PROVIDER === "paypack") {
+    // Mobile-money push: the customer approves the prompt on their phone.
+    const phone = normalizeRwPhone(b.phone);
+    if (!phone) return fail(res, 400, "Please enter a valid Rwandan Mobile Money number (e.g. 078xxxxxxx).");
+    try {
+      const t = await paypackFetch("POST", "/transactions/cashin", { amount: intent.amount, number: phone });
+      db.prepare("INSERT INTO payments (txRef, json) VALUES (?, ?)").run(txRef, JSON.stringify(Object.assign({
+        status: "pending", provider: "paypack", providerRef: t.ref, phone,
+        createdOn: new Date().toISOString()
+      }, intent)));
+      return res.json({ provider: "paypack", txRef, status: "pending",
+        message: "Approve the Mobile Money prompt on " + phone + " to complete the payment of RWF " + intent.amount.toLocaleString("en-US") + "." });
+    } catch (e) {
+      console.error("Paypack cashin error:", e.message);
+      return fail(res, 502, "The payment provider rejected the request: " + e.message);
+    }
+  }
+
+  // Flutterwave hosted checkout (redirect) - the alternative provider.
+  db.prepare("INSERT INTO payments (txRef, json) VALUES (?, ?)")
+    .run(txRef, JSON.stringify(Object.assign({ status: "pending", provider: "flutterwave", createdOn: new Date().toISOString() }, intent)));
   try {
     const flwRes = await fetch(FLW_API + "/payments", {
       method: "POST",
@@ -1287,35 +1377,69 @@ app.post("/api/payments/initiate", async (req, res) => {
       console.error("Flutterwave initiate failed:", data);
       return fail(res, 502, "The payment provider rejected the request: " + (data.message || "unknown error"));
     }
-    res.json({ link: data.data.link, txRef });
+    res.json({ provider: "flutterwave", link: data.data.link, txRef });
   } catch (e) {
     console.error("Flutterwave initiate error:", e);
     fail(res, 502, "Could not reach the payment provider. Please try again.");
   }
 });
 
-/* Verify a transaction with Flutterwave (server-to-server) and, if the
-   money is really there, apply what was paid for. Idempotent: a payment
-   that was already settled is never applied twice. Called from BOTH the
-   browser redirect (/payment/callback) and the webhook, so a customer
-   who closes the browser after paying still gets what they paid for.
-   Returns "success", "failed", or "unknown". */
-async function settlePayment(txRef, transactionId) {
-  const row = db.prepare("SELECT json FROM payments WHERE txRef = ?").get(txRef || "");
-  if (!row) return "unknown";
+/* Check one Paypack payment with the provider and settle it if the money
+   is confirmed - idempotent. Returns "success" | "failed" | "pending". */
+async function settlePaypack(txRef) {
+  const row = db.prepare("SELECT json FROM payments WHERE txRef = ?").get(txRef);
+  if (!row) return "failed";
   const intent = JSON.parse(row.json);
-  if (intent.status === "verified") return "success"; // already settled
+  if (intent.status === "verified") return "success";
+  if (intent.status === "failed") return "failed";
+  if (intent.provider !== "paypack" || !intent.providerRef) return "pending";
+  const t = await paypackFetch("GET", "/transactions/find/" + encodeURIComponent(intent.providerRef));
+  const st = String(t.status || "").toLowerCase();
+  if (st === "successful" || st === "success") {
+    applyIntent(intent);
+    intent.status = "verified";
+    db.prepare("UPDATE payments SET json = ? WHERE txRef = ?").run(JSON.stringify(intent), txRef);
+    return "success";
+  }
+  if (st === "failed" || st === "cancelled") {
+    intent.status = "failed";
+    db.prepare("UPDATE payments SET json = ? WHERE txRef = ?").run(JSON.stringify(intent), txRef);
+    return "failed";
+  }
+  return "pending";
+}
 
-  const vRes = await fetch(FLW_API + "/transactions/" + encodeURIComponent(transactionId) + "/verify", {
-    headers: { Authorization: "Bearer " + FLW_SECRET_KEY }
-  });
-  const v = await vRes.json();
-  const t = v.data || {};
-  const ok = v.status === "success" && t.status === "successful" &&
-             t.tx_ref === txRef && t.currency === "RWF" && Number(t.amount) >= intent.amount;
-  if (!ok) { console.error("Payment verification failed for", txRef, ":", v.message || v.status); return "failed"; }
+/* Poll the status of a payment started with Paypack. Settlement (the
+   actual activation of what was paid for) happens server-side only
+   after the provider confirms the money. */
+app.get("/api/payments/status/:txRef", async (req, res) => {
+  const row = db.prepare("SELECT json FROM payments WHERE txRef = ?").get(req.params.txRef);
+  if (!row) return fail(res, 404, "Unknown payment.");
+  try {
+    res.json({ status: await settlePaypack(req.params.txRef) });
+  } catch (e) {
+    console.error("Paypack status error:", e.message);
+    res.json({ status: "pending" }); // transient - the client keeps polling
+  }
+});
 
-  // Money is confirmed - apply what was paid for.
+/* Safety net: if a customer paid but closed the browser before polling
+   finished, the hourly sweep settles their pending payment anyway. */
+async function checkPendingPaypack() {
+  if (PAY_PROVIDER !== "paypack") return;
+  const dayAgo = Date.now() - 24 * 3600000;
+  for (const row of db.prepare("SELECT txRef, json FROM payments").all()) {
+    const p = JSON.parse(row.json);
+    if (p.provider === "paypack" && p.status === "pending" && new Date(p.createdOn).getTime() > dayAgo) {
+      try { await settlePaypack(row.txRef); } catch (e) { /* try again next sweep */ }
+    }
+  }
+}
+
+/* Apply what a VERIFIED payment paid for (subscription / order / fund)
+   and send the matching notifications. Shared by every payment provider.
+   Callers must have confirmed the money server-side first. */
+function applyIntent(intent) {
   if (intent.kind === "subscription") {
     const rec = getRecord(intent.role, intent.accountId);
     if (rec) {
@@ -1351,6 +1475,30 @@ async function settlePayment(txRef, transactionId) {
   } else if (intent.kind === "fund") {
     insertJson("funds", { amount: intent.amount, name: intent.donorName, date: new Date().toISOString() });
   }
+}
+
+/* Verify a transaction with Flutterwave (server-to-server) and, if the
+   money is really there, apply what was paid for. Idempotent: a payment
+   that was already settled is never applied twice. Called from BOTH the
+   browser redirect (/payment/callback) and the webhook, so a customer
+   who closes the browser after paying still gets what they paid for.
+   Returns "success", "failed", or "unknown". */
+async function settlePayment(txRef, transactionId) {
+  const row = db.prepare("SELECT json FROM payments WHERE txRef = ?").get(txRef || "");
+  if (!row) return "unknown";
+  const intent = JSON.parse(row.json);
+  if (intent.status === "verified") return "success"; // already settled
+
+  const vRes = await fetch(FLW_API + "/transactions/" + encodeURIComponent(transactionId) + "/verify", {
+    headers: { Authorization: "Bearer " + FLW_SECRET_KEY }
+  });
+  const v = await vRes.json();
+  const t = v.data || {};
+  const ok = v.status === "success" && t.status === "successful" &&
+             t.tx_ref === txRef && t.currency === "RWF" && Number(t.amount) >= intent.amount;
+  if (!ok) { console.error("Payment verification failed for", txRef, ":", v.message || v.status); return "failed"; }
+
+  applyIntent(intent);
   intent.status = "verified";
   intent.transactionId = transactionId;
   db.prepare("UPDATE payments SET json = ? WHERE txRef = ?").run(JSON.stringify(intent), txRef);
@@ -1399,9 +1547,87 @@ app.post("/api/payments/webhook", async (req, res) => {
 });
 
 /* ============================================================
-   REAL AI - Quick Help chat (Anthropic Claude)
+   REAL AI - Quick Help chat + document checks.
+   Provider: Google Gemini (FREE tier - key from aistudio.google.com)
+   when GEMINI_API_KEY is set; otherwise Anthropic Claude when
+   ANTHROPIC_API_KEY is set; otherwise the client falls back to the
+   built-in offline helper. Keys never leave the server.
    ============================================================ */
 const anthropic = ANTHROPIC_KEY ? new Anthropic({ apiKey: ANTHROPIC_KEY }) : null;
+
+const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
+let geminiModels = process.env.GEMINI_MODEL ? [process.env.GEMINI_MODEL] : [];
+
+/* Ask Google which models this key can use and keep a RANKED LIST of
+   free Flash models - if the best one is overloaded ("high demand"),
+   we automatically fall through to the next. */
+async function discoverGeminiModels() {
+  if (!GEMINI_KEY || geminiModels.length) return;
+  try {
+    const res = await fetch(GEMINI_BASE + "/models?pageSize=100&key=" + encodeURIComponent(GEMINI_KEY));
+    const data = await res.json();
+    const models = (data.models || [])
+      .filter(m => (m.supportedGenerationMethods || []).indexOf("generateContent") >= 0)
+      .map(m => m.name.replace(/^models\//, ""));
+    const score = n => {
+      const v = /gemini-(\d+(?:\.\d+)?)/.exec(n);
+      return (v ? parseFloat(v[1]) : 0) * 100
+        + (n.indexOf("flash") >= 0 ? 10 : 0)
+        - (n.indexOf("lite") >= 0 ? 5 : 0)
+        - (/preview|exp/.test(n) ? 50 : 0)
+        - (n.indexOf("pro") >= 0 ? 8 : 0); // pro is not on the free tier
+    };
+    geminiModels = models.filter(n => n.indexOf("flash") >= 0).sort((a, b) => score(b) - score(a)).slice(0, 4);
+    if (!geminiModels.length && models.length) geminiModels = [models[0]];
+    if (geminiModels.length) console.log("  AI models: Gemini " + geminiModels.map(m => '"' + m + '"').join(", "));
+    else console.error("  Gemini: no usable model found for this key.");
+  } catch (e) {
+    console.error("  Gemini model discovery failed:", e.message);
+  }
+}
+if (GEMINI_KEY) discoverGeminiModels();
+
+/* Is this error worth retrying on a different model? (overloaded/busy) */
+function geminiRetriable(e) {
+  return e.status === 429 || e.status === 503 || /high demand|overloaded|try again/i.test(e.message || "");
+}
+
+/* One Gemini call with automatic model fallback. `parts` items:
+   {text} or {inline_data:{mime_type,data}}. Returns the reply text. */
+async function geminiGenerate(systemText, contents, maxTokens) {
+  if (!geminiModels.length) await discoverGeminiModels();
+  if (!geminiModels.length) throw new Error("Gemini model unavailable");
+  let lastErr;
+  for (const model of geminiModels) {
+    try {
+      const res = await fetch(GEMINI_BASE + "/models/" + model + ":generateContent?key=" + encodeURIComponent(GEMINI_KEY), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemText }] },
+          contents,
+          generationConfig: { maxOutputTokens: maxTokens || 1024 }
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = (data.error && data.error.message) || ("Gemini error " + res.status);
+        const err = new Error(msg);
+        err.status = res.status;
+        throw err;
+      }
+      const cand = (data.candidates || [])[0];
+      return cand && cand.content && cand.content.parts
+        ? cand.content.parts.map(p => p.text || "").join("").trim()
+        : "";
+    } catch (e) {
+      lastErr = e;
+      if (!geminiRetriable(e)) throw e;
+      console.log("  Gemini model \"" + model + "\" busy - trying the next one...");
+    }
+  }
+  throw lastErr;
+}
 
 const CHAT_SYSTEM = `You are the Quick Help assistant for the Rwanda Blood Donation Centre website.
 Be warm, clear and CONCISE (2-5 sentences unless more detail is truly needed). You answer any question,
@@ -1427,7 +1653,7 @@ Anyone can OFFER to donate blood on the Donate page WITHOUT creating an account 
 Medical questions: give general, safe education and always advise seeing a doctor or pharmacist for personal medical decisions - you are not a doctor and must not diagnose or prescribe. If you are not sure about something or it concerns a specific account/payment problem, say so plainly and point them to the site administrator (via the feedback/admin contact) instead of guessing. In an emergency tell them to call 912 immediately.`;
 
 app.post("/api/chat", async (req, res) => {
-  if (!anthropic) return res.json({ configured: false });
+  if (!GEMINI_KEY && !anthropic) return res.json({ configured: false });
   const history = Array.isArray(req.body.messages) ? req.body.messages.slice(-20) : [];
   const messages = history
     .filter(m => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
@@ -1436,18 +1662,27 @@ app.post("/api/chat", async (req, res) => {
     return fail(res, 400, "Send at least one user message.");
   }
   // Tailor guidance to who is asking (donor / hospital / pharmacy / admin).
-  // Added AFTER the cached block so the big system prompt stays cacheable.
   const a = accountFor(req);
-  const system = [{ type: "text", text: CHAT_SYSTEM, cache_control: { type: "ephemeral" } }];
-  if (a) {
-    system.push({
-      type: "text",
-      text: "The person you are talking to is logged in as a " + a.role +
-        (a.record && (a.record.name || a.record.fullName) ? " (" + (a.record.name || a.record.fullName) + ")" : "") +
-        ". Tailor your guidance to what a " + a.role + " can actually do on this platform."
-    });
-  }
+  const roleLine = a
+    ? "\n\nThe person you are talking to is logged in as a " + a.role +
+      (a.record && (a.record.name || a.record.fullName) ? " (" + (a.record.name || a.record.fullName) + ")" : "") +
+      ". Tailor your guidance to what a " + a.role + " can actually do on this platform."
+    : "";
+
   try {
+    if (GEMINI_KEY) {
+      // FREE provider: Google Gemini.
+      const contents = messages.map(m => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }]
+      }));
+      const reply = await geminiGenerate(CHAT_SYSTEM + roleLine, contents, 1024);
+      return res.json({ configured: true, reply: reply || "Sorry, I could not come up with an answer - please try rephrasing." });
+    }
+
+    // Anthropic Claude.
+    const system = [{ type: "text", text: CHAT_SYSTEM, cache_control: { type: "ephemeral" } }];
+    if (roleLine) system.push({ type: "text", text: roleLine.trim() });
     const response = await anthropic.beta.messages.create({
       model: "claude-opus-5",
       max_tokens: 2048, // chat replies are deliberately short
@@ -1462,14 +1697,18 @@ app.post("/api/chat", async (req, res) => {
     const reply = response.content.filter(b => b.type === "text").map(b => b.text).join("\n").trim();
     res.json({ configured: true, reply: reply || "Sorry, I could not come up with an answer - please try rephrasing." });
   } catch (e) {
-    if (e instanceof Anthropic.AuthenticationError) {
+    if (anthropic && e instanceof Anthropic.AuthenticationError) {
       console.error("Anthropic API key is invalid.");
       return res.json({ configured: false });
     }
-    if (e instanceof Anthropic.RateLimitError) {
-      return res.json({ configured: true, reply: "I'm receiving too many questions right now - please try again in a moment." });
+    if ((anthropic && e instanceof Anthropic.RateLimitError) || e.status === 429) {
+      return res.json({ configured: true, reply: "I'm receiving too many questions right now (free-tier limit) - please try again in a minute." });
     }
-    console.error("Chat error:", e);
+    if (e.status === 400 || e.status === 401 || e.status === 403) {
+      console.error("AI key/config problem:", e.message);
+      return res.json({ configured: false });
+    }
+    console.error("Chat error:", e.message || e);
     fail(res, 502, "The AI assistant hit a problem - please try again.");
   }
 });
@@ -1540,7 +1779,10 @@ function expirySweep() {
   }
 }
 expirySweep();
-setInterval(expirySweep, 60 * 60 * 1000);
+setInterval(function () {
+  expirySweep();
+  checkPendingPaypack().catch(e => console.error("Pending payment sweep:", e.message));
+}, 60 * 60 * 1000);
 
 /* ============================================================
    STATIC SITE + merged-page redirects
@@ -1559,8 +1801,12 @@ function listenOn(port, attemptsLeft) {
   const server = app.listen(port, () => {
     console.log("");
     console.log("  Rwanda Blood Donation Centre is running:  http://localhost:" + port);
-    console.log("  Payments:  " + (FLW_SECRET_KEY ? "Flutterwave configured - REAL payments enabled" : "not configured (add FLW_SECRET_KEY to .env)"));
-    console.log("  AI chat:   " + (ANTHROPIC_KEY ? "Anthropic Claude enabled" : "not configured (add ANTHROPIC_API_KEY to .env) - offline helper will be used"));
+    console.log("  Payments:  " + (PAY_PROVIDER === "paypack" ? "Paypack configured - REAL Mobile Money payments enabled"
+      : PAY_PROVIDER === "flutterwave" ? "Flutterwave configured - REAL payments enabled"
+      : "not configured (add PAYPACK_CLIENT_ID + PAYPACK_CLIENT_SECRET to .env)"));
+    console.log("  AI chat:   " + (GEMINI_KEY ? "Google Gemini enabled (free tier)"
+      : ANTHROPIC_KEY ? "Anthropic Claude enabled"
+      : "not configured (add GEMINI_API_KEY to .env - it's free) - offline helper will be used"));
     console.log("  Demo logins (password demo1234): info@chuk.rw (hospital), info@kipharma.rw (pharmacy)");
     console.log("  Admin:     My Account > Admin, password " + (process.env.ADMIN_PASSWORD ? "from your .env" : '"admin1234" (default - set ADMIN_PASSWORD in .env to change it)'));
     console.log("");

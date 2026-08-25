@@ -3,7 +3,7 @@
 A blood-donation platform for Rwanda with a real Node.js backend: donor /
 hospital / pharmacy accounts, hospital-only blood requests, a live map of every
 hospital in Rwanda, case-related medicines with prescription upload, real
-payments (Flutterwave) and a real AI helper (Anthropic Claude).
+Mobile Money payments (Paypack) and a real AI helper (Google Gemini, free tier).
 
 ## How to run
 
@@ -35,12 +35,16 @@ still runs; the two features below simply say "not configured".
 
 | Key | Enables | Where to get it |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Real AI in the Quick Help chat (Claude). Without it, an offline keyword helper answers instead. | https://console.anthropic.com |
-| `FLW_SECRET_KEY` | REAL payments in RWF - MTN/Airtel Mobile Money and cards - for subscriptions, medicine purchases and fund donations. Use your Flutterwave TEST key first (full flow, no real money), then the LIVE key. | https://flutterwave.com |
+| `GEMINI_API_KEY` | **FREE** real AI for Quick Help + document checks (Google Gemini free tier, ~1,500 requests/day). | https://aistudio.google.com |
+| `ANTHROPIC_API_KEY` | Alternative paid AI (Claude) - used only when no Gemini key is set. | https://console.anthropic.com |
+| `PAYPACK_CLIENT_ID` + `PAYPACK_CLIENT_SECRET` | REAL payments in RWF via MTN/Airtel **Mobile Money** - the customer approves a prompt on their phone. Self-service signup. | https://payments.paypack.rw |
+| `FLW_SECRET_KEY` | Alternative payments (Flutterwave, adds cards) - used only when no Paypack keys are set. | https://flutterwave.com |
 
-Payments are never faked: with no key, every pay button clearly reports that
-payment is not configured, and nothing activates. With a key, the server
-verifies each transaction with Flutterwave before activating anything.
+Payments are never faked: with no keys, every pay button clearly reports that
+payment is not configured, and nothing activates. With Paypack keys, the
+customer approves a Mobile Money prompt on their phone and the server verifies
+the transaction with Paypack before activating anything (idempotent - never
+applied twice). Flutterwave works the same way via its hosted checkout.
 
 ## The rules the server enforces
 
@@ -110,7 +114,7 @@ redirect to the merged pages.
   days via an hourly server job (soft delete - kept for auditing).
 - **Document checks**: uploads are verified against their real file bytes (a
   renamed file is rejected), duplicate medical documents across accounts are
-  flagged, and (when `ANTHROPIC_API_KEY` is set) an AI plausibility check flags
+  flagged, and (when `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` is set) an AI plausibility check flags
   files that don't look like the claimed certificate/prescription. Flags are
   reviewed by the admin - the AI never decides alone.
 
@@ -126,9 +130,10 @@ the simplest correct deployment is a **single Railway service**:
 3. Add a **Volume** to the service, mounted at `/data`.
 4. Set the environment variables (Service → Variables): `DATA_DIR=/data`,
    `PUBLIC_URL=https://<your-app>.up.railway.app`, `ADMIN_PASSWORD`,
-   `ANTHROPIC_API_KEY`, `FLW_SECRET_KEY`, `FLW_WEBHOOK_HASH`.
-5. In the Flutterwave dashboard set the webhook URL to
-   `https://<your-app>.up.railway.app/api/payments/webhook`.
+   `GEMINI_API_KEY`, `PAYPACK_CLIENT_ID`, `PAYPACK_CLIENT_SECRET`.
+5. (Only if using Flutterwave instead of Paypack: also set `FLW_SECRET_KEY`,
+   `FLW_WEBHOOK_HASH`, and point the Flutterwave webhook at
+   `https://<your-app>.up.railway.app/api/payments/webhook`.)
 
 **About Vercel**: Vercel's serverless platform has no persistent disk, so the
 SQLite database and uploads cannot live there - do not deploy the backend to

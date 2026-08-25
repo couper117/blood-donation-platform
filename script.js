@@ -38,6 +38,76 @@ function showMsg(el, text, type) {
   el.className = "form-message show " + type;
 }
 
+/* ------------------------------------------------------------
+   Shared payment flow. Works with whichever provider the server has:
+   - Paypack: ask for the customer's Mobile Money number, the provider
+     pushes an approval prompt to their phone, and we poll the server
+     until the money is confirmed (or fails).
+   - Flutterwave: redirect to the hosted checkout page.
+   `onSuccessUrl` is where the browser goes after a confirmed Paypack
+   payment (with ?payment=success so the page shows the banner).
+   ------------------------------------------------------------ */
+function askMomoNumber(amountLabel, cb) {
+  const body =
+    '<p class="muted" style="margin-bottom:12px">Enter the MTN or Airtel Mobile Money number to charge <strong>' + esc(amountLabel) + '</strong>. ' +
+    'A prompt will appear on that phone to approve the payment.</p>' +
+    '<div class="field"><label for="momoNum">Mobile Money number</label>' +
+    '<input type="tel" id="momoNum" placeholder="078xxxxxxx" autocomplete="tel" /></div>' +
+    '<div class="form-actions" style="margin-top:14px"><button class="btn btn-primary btn-lg" id="momoGo">Send payment request</button></div>';
+  const overlay = widgetOverlay("Pay with Mobile Money", body);
+  const input = overlay.querySelector("#momoNum");
+  input.focus();
+  function go() {
+    const v = input.value.trim();
+    if (v.replace(/[^\d]/g, "").length < 9) { input.style.borderColor = "var(--red)"; return; }
+    overlay.remove();
+    cb(v);
+  }
+  overlay.querySelector("#momoGo").addEventListener("click", go);
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+}
+
+async function payFlow(intent, msgEl, onSuccessUrl) {
+  const cfg = await DB.paymentsConfig();
+  if (!cfg.configured) {
+    showMsg(msgEl, "Online payment is not configured yet - the site owner must add Paypack keys to the server's .env file. No payment was taken.", "error");
+    return;
+  }
+  if (cfg.provider === "flutterwave") {
+    showMsg(msgEl, "Taking you to the secure payment page...", "success");
+    try { await DB.startPayment(intent); } catch (e) { showMsg(msgEl, e.message, "error"); }
+    return;
+  }
+  // Paypack (Mobile Money push)
+  const label = "RWF " + (intent.amount ? intent.amount.toLocaleString("en-US") : "the amount due");
+  askMomoNumber(label, async function (phone) {
+    showMsg(msgEl, "Sending the payment request to " + phone + "...", "success");
+    let out;
+    try {
+      out = await DB.initiatePayment(Object.assign({ phone }, intent));
+    } catch (e) { showMsg(msgEl, e.message, "error"); return; }
+    showMsg(msgEl, "Now check the phone (" + phone + ") and approve the Mobile Money prompt. Waiting for confirmation...", "success");
+    let tries = 0;
+    const iv = setInterval(async function () {
+      tries++;
+      try {
+        const st = await DB.paymentStatus(out.txRef);
+        if (st.status === "success") {
+          clearInterval(iv);
+          showMsg(msgEl, "Payment received and verified!", "success");
+          if (onSuccessUrl) window.location.href = onSuccessUrl;
+        } else if (st.status === "failed") {
+          clearInterval(iv);
+          showMsg(msgEl, "The payment failed or was declined on the phone - nothing was activated. You can try again.", "error");
+        } else if (tries > 40) { // ~2 minutes
+          clearInterval(iv);
+          showMsg(msgEl, "Still waiting for the approval. If you approved it, give it a minute and refresh this page - the payment completes automatically once confirmed.", "error");
+        }
+      } catch (e) { /* transient - keep polling */ }
+    }, 3000);
+  });
+}
+
 /* Reads ?payment=success|failed|cancelled from the URL (after a real
    payment redirect) and shows it in the given message element. */
 function handlePaymentReturn(msgEl) {
@@ -664,12 +734,7 @@ async function initFundsPage() {
     const name = document.getElementById("fundName").value.trim() || "Anonymous";
     const amt = parseInt(document.getElementById("fundAmount").value, 10);
     if (isNaN(amt) || amt < 500) { showMsg(msg, "Please enter an amount of at least RWF 500.", "error"); return; }
-    showMsg(msg, "Taking you to the secure payment page...", "success");
-    try {
-      await DB.startPayment({ kind: "fund", amount: amt, name });
-    } catch (err) {
-      showMsg(msg, err.message, "error");
-    }
+    payFlow({ kind: "fund", amount: amt, name }, msg, "services.html?payment=success#funds");
   });
 }
 
@@ -779,8 +844,7 @@ function initSubscribePage() {
         }
         initHeaderAccount();
       }
-      showMsg(msg, "Taking you to the secure Mobile Money / card payment page...", "success");
-      await DB.startPayment({ kind: "subscription", plan: chosenPlan });
+      await payFlow({ kind: "subscription", plan: chosenPlan, amount: price() }, msg, "subscribe.html?payment=success");
     } catch (err) {
       showMsg(msg, err.message, "error");
     }
@@ -964,9 +1028,13 @@ function initDashboard() {
       (payable(o) ? '<div class="hosp-actions"><button class="btn btn-primary btn-sm" data-pay-order="' + o.id + '">Pay online now</button></div>' : '') +
       '</div>').join("") + '</div>';
     box.querySelectorAll("[data-pay-order]").forEach(btn => btn.addEventListener("click", async function () {
-      btn.textContent = "Opening secure payment...";
-      try { await DB.startPayment({ kind: "order-payment", orderId: parseInt(btn.getAttribute("data-pay-order"), 10) }); }
-      catch (e) { btn.textContent = "Pay online now"; alert(e.message); }
+      const card = btn.closest(".hosp-card");
+      const msgEl = document.getElementById("dashPayMsg");
+      try {
+        await payFlow({ kind: "order-payment", orderId: parseInt(btn.getAttribute("data-pay-order"), 10) },
+          msgEl, "dashboard.html?payment=success");
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch (e) { alert(e.message); }
     }));
   }
 
@@ -1933,8 +2001,8 @@ async function initMedicinesPage() {
 
     try {
       if (online) {
-        showMsg(msg, "Taking you to the secure Mobile Money / card payment page...", "success");
-        await DB.startPayment({ kind: "order", medicineId: medId, pharmacyEmail, qty, prescriptionUrl });
+        await payFlow({ kind: "order", medicineId: medId, pharmacyEmail, qty, prescriptionUrl, amount: med.price * qty },
+          msg, "medicines.html?payment=success");
       } else {
         const order = await DB.placeOrder({ medicineId: medId, pharmacyEmail, qty, prescriptionUrl });
         stockMap[pharmacyEmail + "|" + medId] = Math.max(0, stock - qty);

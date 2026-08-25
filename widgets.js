@@ -106,8 +106,8 @@ function initChatWidget() {
     function setStatus(ai) {
       aiAvailable = ai;
       if (statusEl) statusEl.textContent = ai
-        ? "AI assistant (Claude) - ask me anything"
-        : "Built-in helper - works offline. (Add ANTHROPIC_API_KEY to .env for the full AI.)";
+        ? "AI assistant - ask me anything"
+        : "Built-in helper - works offline. (Add a free GEMINI_API_KEY to .env for the full AI.)";
     }
     if (aiAvailable !== null) setStatus(aiAvailable);
 
