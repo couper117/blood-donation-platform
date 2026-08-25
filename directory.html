@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Directory - Rwanda Blood Donation Centre</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" class="active" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main id="directory">
+    <section class="page-head">
+      <h1 data-i18n="directory.title">Directory</h1>
+      <p class="lead" data-i18n="directory.lead">Blood requests, registered donors, and every hospital and pharmacy across Rwanda - all in one place.</p>
+    </section>
+
+    <div class="tabs" id="directoryTabs">
+      <button class="tab" data-tab="requests">Blood requests</button>
+      <button class="tab" data-tab="donors">Donors</button>
+      <button class="tab" data-tab="hospitals">Hospitals</button>
+      <button class="tab" data-tab="pharmacies">Pharmacies</button>
+    </div>
+
+    <!-- ===== Blood requests tab ===== -->
+    <div data-tab-panel="requests">
+      <!-- Post a request: HOSPITALS WITH AN ACTIVE SUBSCRIPTION ONLY -->
+      <section class="panel" id="requestLockedPanel" style="display:none"></section>
+
+      <section class="panel" id="requestFormPanel" style="display:none">
+        <h2>Post a blood request</h2>
+        <p class="muted" id="reqPostingAs"></p>
+        <p class="muted">The request stays visible for up to 30 days, then erases itself automatically.</p>
+
+        <form id="requestForm" class="form-grid" novalidate>
+          <div class="field">
+            <label for="reqPatient">Patient reference (optional)</label>
+            <input type="text" id="reqPatient" placeholder="Kept for your records" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="reqGroup">Blood group needed</label>
+            <select id="reqGroup">
+              <option value="">Select</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option>
+              <option>O+</option><option>O-</option>
+              <option>Any compatible</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="reqUnits">Units needed</label>
+            <input type="number" id="reqUnits" min="1" max="50" placeholder="e.g. 2" />
+          </div>
+
+          <div class="field">
+            <label for="reqPlace">Location (ward / hospital)</label>
+            <input type="text" id="reqPlace" placeholder="e.g. Kigali, CHUK" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="reqContact">Contact for donors (optional)</label>
+            <input type="text" id="reqContact" placeholder="Defaults to your hospital's contact" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="reqUrgency">Urgency</label>
+            <select id="reqUrgency">
+              <option>Normal</option>
+              <option>Urgent</option>
+              <option>Critical</option>
+            </select>
+          </div>
+
+          <div class="field field-wide">
+            <label for="reqNote">Short note (optional)</label>
+            <input type="text" id="reqNote" placeholder="e.g. needed for surgery Friday" autocomplete="off" />
+          </div>
+
+          <!-- Location picker -->
+          <div class="field field-wide">
+            <label>Pin the location on the map (optional)</label>
+            <p class="hint">Click the map to drop a pin, drag to adjust, or detect your location. Helps donors find you.</p>
+            <div id="reqMap" class="map-canvas small"></div>
+            <div class="hosp-toolbar">
+              <button type="button" class="btn btn-ghost btn-sm" id="reqUseLocation">Use my current location</button>
+              <span class="dist" id="reqLocText"></span>
+            </div>
+          </div>
+
+          <div class="field field-wide form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">Post request (auto-deletes in 30 days)</button>
+          </div>
+
+          <div id="requestMessage" class="form-message" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <!-- Request Board -->
+      <section class="panel">
+        <h2 data-i18n="board.title">Request Board</h2>
+        <p class="muted">Blood requests posted by hospitals, and donation offers from volunteers (posted from the <a href="donate.html">Donate page</a>, no account needed). Everything expires automatically after 30 days. Log in as a donor to book a request.</p>
+        <div class="dir-toolbar board-toolbar">
+          <input type="text" id="boardSearch" class="settings-select" placeholder="Search name, blood group, place..." aria-label="Search the request board" />
+          <select id="boardType" class="settings-select" aria-label="Filter by type">
+            <option value="all">All types</option>
+            <option value="needs">Blood requests (hospitals)</option>
+            <option value="offers">Donation offers (volunteers)</option>
+          </select>
+          <select id="boardUrgency" class="settings-select" aria-label="Filter by urgency">
+            <option value="all">Any urgency</option>
+            <option>Normal</option>
+            <option>Urgent</option>
+            <option>Critical</option>
+          </select>
+          <span class="count-pill"><b id="requestTotal">0</b> request(s)</span>
+          <span class="count-pill"><b id="offerTotal">0</b> offer(s)</span>
+        </div>
+        <div class="hosp-grid" id="requestList" style="margin-top:16px"></div>
+      </section>
+    </div>
+
+    <!-- ===== Donors tab ===== -->
+    <div data-tab-panel="donors" style="display:none">
+      <section class="panel">
+        <h2>Registered donors</h2>
+        <p class="muted">People who have registered to donate, with where they are and how to reach them.</p>
+        <div class="dir-toolbar">
+          <span class="count-pill"><b id="donorTotal">0</b> donor(s) listed</span>
+          <a class="btn btn-primary btn-sm" href="donate.html">Register as a donor</a>
+        </div>
+        <div class="hosp-grid" id="donorList" style="margin-top:16px"></div>
+      </section>
+    </div>
+
+    <!-- ===== Hospitals tab ===== -->
+    <div data-tab-panel="hospitals" style="display:none">
+      <section class="panel">
+        <h2>Hospitals across Rwanda</h2>
+        <p class="muted">Referral, provincial and district hospitals in every province, with their location and contact number. Use "Find hospitals near me" to sort them by distance.</p>
+        <div id="hospMap" class="map-canvas small" style="margin-top:12px"></div>
+        <div class="hosp-toolbar">
+          <button class="btn btn-primary" id="findNearby">Find hospitals near me</button>
+          <span class="dist" id="nearbyStatus"></span>
+        </div>
+        <div class="hosp-grid" id="hospitalList"></div>
+      </section>
+    </div>
+
+    <!-- ===== Pharmacies tab ===== -->
+    <div data-tab-panel="pharmacies" style="display:none">
+      <section class="panel">
+        <h2>Pharmacies</h2>
+        <p class="muted">Real pharmacies across Rwanda, plus the pharmacies registered on this platform to sell medicines.</p>
+        <div id="pharmMap" class="map-canvas small" style="margin-top:12px"></div>
+
+        <h3 class="section-title">Real pharmacies in Rwanda</h3>
+        <p class="muted">A reference directory - names, cities and phone numbers.</p>
+        <div class="hosp-grid" id="pharmacyRefList" style="margin-top:8px"></div>
+
+        <h3 class="section-title">Pharmacies on this platform</h3>
+        <p class="muted">Accounts registered through My Account, with their subscription tier.</p>
+        <div class="hosp-grid" id="pharmacyAccountList" style="margin-top:8px"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Not a real medical service. In a real emergency, call 912.</p>
+  </footer>
+
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

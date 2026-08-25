@@ -1,0 +1,14 @@
+# Dependencies - recreated with `npm install`
+node_modules/
+
+# Local database and uploaded files - each machine gets its own
+bdc.sqlite
+uploads/
+private_uploads/
+
+# Secrets - NEVER share this file; copy .env.example instead
+.env
+
+# Editor/system files
+.vscode/
+.DS_Store

@@ -1,0 +1,16 @@
+{
+  "name": "rwanda-blood-donation-centre",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Rwanda Blood Donation Centre - website with a real Node.js backend",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.0",
+    "express": "^4.21.2"
+  }
+}

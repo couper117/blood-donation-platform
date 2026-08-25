@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subscribe - Rwanda Blood Donation Centre</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" class="active" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main id="subscribePage">
+    <section class="page-head">
+      <h1 data-i18n="subscribe.title">Subscription plans</h1>
+      <p class="lead">Hospitals and pharmacies pay a monthly subscription to use this platform - hospitals to post blood requests and use drone delivery, pharmacies to sell medicines. Payment is real, processed securely by Flutterwave (MTN/Airtel Mobile Money or card), and your plan activates only after the payment is verified.</p>
+    </section>
+
+    <div class="role-switch tabs" id="subRoleSwitch">
+      <button class="tab active" data-role="hospital">I'm a Hospital</button>
+      <button class="tab" data-role="pharmacy">I'm a Pharmacy</button>
+    </div>
+
+    <div class="panel" id="subCurrentStatus" style="display:none"></div>
+
+    <div class="plan-grid" id="hospitalPlans">
+      <div class="plan-card" data-plan="Basic">
+        <h3>Basic</h3>
+        <div class="plan-price">RWF 50,000<span> / month</span></div>
+        <ul>
+          <li>Access to the live supply &amp; demand map</li>
+          <li>Post your blood requests</li>
+          <li>Up to 100 donor matches / month</li>
+          <li>Email support</li>
+        </ul>
+        <button class="btn btn-ghost" data-choose-plan="Basic">Choose Basic</button>
+      </div>
+      <div class="plan-card featured" data-plan="Standard">
+        <span class="plan-badge">Most popular</span>
+        <h3>Standard</h3>
+        <div class="plan-price">RWF 150,000<span> / month</span></div>
+        <ul>
+          <li>Everything in Basic</li>
+          <li>Unlimited donor matches</li>
+          <li>Standard drone delivery requests</li>
+          <li>Priority phone &amp; email support</li>
+        </ul>
+        <button class="btn btn-primary" data-choose-plan="Standard">Choose Standard</button>
+      </div>
+      <div class="plan-card" data-plan="Premium">
+        <h3>Premium</h3>
+        <div class="plan-price">RWF 400,000<span> / month</span></div>
+        <ul>
+          <li>Everything in Standard - unlimited experience</li>
+          <li>Priority / emergency drone delivery requests</li>
+          <li>Dedicated account manager</li>
+          <li>Analytics &amp; monthly reports</li>
+        </ul>
+        <button class="btn btn-ghost" data-choose-plan="Premium">Choose Premium</button>
+      </div>
+    </div>
+
+    <div class="plan-grid" id="pharmacyPlans" style="display:none">
+      <div class="plan-card" data-plan="Basic">
+        <h3>Basic</h3>
+        <div class="plan-price">RWF 30,000<span> / month</span></div>
+        <ul>
+          <li>List up to 15 medicines</li>
+          <li>Appear in the Pharmacy directory</li>
+          <li>Basic sales tracking</li>
+          <li>Email support</li>
+        </ul>
+        <button class="btn btn-ghost" data-choose-plan="Basic">Choose Basic</button>
+      </div>
+      <div class="plan-card featured" data-plan="Standard">
+        <span class="plan-badge">Most popular</span>
+        <h3>Standard</h3>
+        <div class="plan-price">RWF 80,000<span> / month</span></div>
+        <ul>
+          <li>Everything in Basic</li>
+          <li>Unlimited medicine listings</li>
+          <li>Full sales &amp; revenue dashboard</li>
+          <li>Priority phone &amp; email support</li>
+        </ul>
+        <button class="btn btn-primary" data-choose-plan="Standard">Choose Standard</button>
+      </div>
+      <div class="plan-card" data-plan="Premium">
+        <h3>Premium</h3>
+        <div class="plan-price">RWF 180,000<span> / month</span></div>
+        <ul>
+          <li>Everything in Standard - unlimited experience</li>
+          <li>Featured placement in the Pharmacy directory</li>
+          <li>Dedicated account manager</li>
+          <li>Analytics &amp; monthly reports</li>
+        </ul>
+        <button class="btn btn-ghost" data-choose-plan="Premium">Choose Premium</button>
+      </div>
+    </div>
+
+    <section class="panel" id="paymentPanel" style="display:none">
+      <h2>Subscribe to the <span id="chosenPlanLabel"></span> plan - <span id="chosenPriceLabel"></span></h2>
+      <p class="muted">Payment is processed on Flutterwave's secure page (MTN/Airtel Mobile Money or card). Your plan activates automatically once the payment is verified - you will be brought straight back here.</p>
+      <p class="muted" id="subLoggedInAs" style="display:none;font-weight:600"></p>
+
+      <form id="paymentForm" class="form-grid" novalidate style="margin-top:8px">
+        <div id="subAccountFields" class="field-wide">
+          <div class="form-grid" style="padding:0">
+            <div class="field"><label for="subName" id="subNameLabel">Hospital / pharmacy name</label><input type="text" id="subName" autocomplete="off" /></div>
+            <div class="field"><label for="subEmail">Contact email (your login)</label><input type="text" id="subEmail" placeholder="admin@example.rw" autocomplete="off" /></div>
+            <div class="field field-wide"><label for="subPassword">Password (creates your account, or logs you in if you already have one)</label><input type="password" id="subPassword" autocomplete="off" /></div>
+          </div>
+        </div>
+        <div class="field field-wide form-actions">
+          <button type="submit" class="btn btn-primary btn-lg">Pay securely with Mobile Money / card</button>
+        </div>
+        <div id="subMessage" class="form-message" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Prices are illustrative; payments are real when configured.</p>
+  </footer>
+
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

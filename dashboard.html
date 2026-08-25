@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account - Rwanda Blood Donation Centre</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" class="active" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main id="dashboard">
+    <section class="page-head">
+      <h1 data-i18n="dashboard.title">My Account</h1>
+      <p class="lead" data-i18n="dashboard.lead">Log in as a donor, hospital or pharmacy to see your dashboard - your profile, your information and your tools.</p>
+    </section>
+
+    <div id="dashPayMsg" class="form-message" role="status" aria-live="polite" style="margin-bottom:12px"></div>
+
+    <!-- Logged-out: role selector -->
+    <section id="loginCard">
+      <div class="tabs" id="roleTabs">
+        <button class="tab active" data-role="donor">Donor</button>
+        <button class="tab" data-role="hospital">Hospital</button>
+        <button class="tab" data-role="pharmacy">Pharmacy</button>
+        <button class="tab" data-role="admin">Admin</button>
+      </div>
+
+      <!-- Donor login -->
+      <div class="tab-panel active" id="role-donor">
+        <div class="panel">
+          <h2>Donor log in</h2>
+          <p class="muted">Use the phone/email and password you chose on the Donate page.</p>
+          <form id="loginForm" class="form-grid" novalidate style="margin-top:12px">
+            <div class="field">
+              <label for="loginContact">Phone or email</label>
+              <input type="text" id="loginContact" placeholder="Your phone or email" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" autocomplete="current-password" />
+            </div>
+            <div class="field field-wide form-actions"><button type="submit" class="btn btn-primary btn-lg">Log in</button></div>
+            <div id="loginMsg" class="form-message"></div>
+          </form>
+          <p class="muted" style="margin-top:10px">New here? <button type="button" class="btn btn-ghost btn-sm" id="showDonorRegister">Create donor account</button>
+            <br /><small class="hint">Just want to offer blood once, without an account? Use the <a href="donate.html">Donate page</a> instead.</small></p>
+        </div>
+
+        <div class="panel" id="donorRegisterPanel" style="display:none">
+          <h2>Create your donor account</h2>
+          <p class="confidential">Confidential: this creates your personal account with a profile, donation history and hospital verification. It is separate from posting a one-time donation offer.</p>
+          <form id="donorRegisterForm" class="form-grid" novalidate style="margin-top:12px">
+            <div class="field"><label for="drName">Full name</label><input type="text" id="drName" autocomplete="off" /></div>
+            <div class="field"><label for="drAge">Age</label><input type="number" id="drAge" min="16" max="70" placeholder="18" /><small class="hint">Donors are between 18 and 65.</small></div>
+            <div class="field">
+              <label for="drGroup">Blood group</label>
+              <select id="drGroup">
+                <option value="">Select</option>
+                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+                <option>I don't know</option>
+              </select>
+            </div>
+            <div class="field"><label for="drContact">Phone or email (your login)</label><input type="text" id="drContact" autocomplete="off" /></div>
+            <div class="field"><label for="drPassword">Choose a password</label><input type="password" id="drPassword" autocomplete="new-password" /><small class="hint">At least 4 characters.</small></div>
+            <div class="field"><label for="drCity">City / area</label><input type="text" id="drCity" autocomplete="off" /></div>
+            <div class="field"><label for="drLastDonation">Last donation date</label><input type="date" id="drLastDonation" /><small class="hint">Leave blank if this is your first time.</small></div>
+            <div class="field field-wide">
+              <label>Your location (pin it on the map)</label>
+              <div id="drMap" class="map-canvas small"></div>
+              <span class="dist" id="drLocText"></span>
+            </div>
+            <div class="field field-wide">
+              <label for="drScreening">Blood screening certificate (optional now, needed for verification)</label>
+              <input type="file" id="drScreening" accept=".pdf,.jpg,.jpeg,.png" />
+              <small class="hint">PDF, JPG or PNG, max 5 MB. A hospital reviews it and gives you the Verified badge.</small>
+              <p class="file-info" id="drFileInfo"></p>
+            </div>
+            <div class="field field-wide">
+              <label class="checkbox"><input type="checkbox" id="drConsent" /> I confirm the information is correct and agree to be contacted about donating.</label>
+            </div>
+            <div class="field field-wide form-actions"><button type="submit" class="btn btn-primary btn-lg">Create my donor account</button></div>
+            <div id="drMsg" class="form-message"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Hospital login / register -->
+      <div class="tab-panel" id="role-hospital">
+        <div class="panel">
+          <h2>Hospital log in</h2>
+          <form id="hospitalLoginForm" class="form-grid" novalidate style="margin-top:12px">
+            <div class="field"><label for="hLoginEmail">Email</label><input type="text" id="hLoginEmail" autocomplete="off" /></div>
+            <div class="field"><label for="hLoginPassword">Password</label><input type="password" id="hLoginPassword" autocomplete="off" /></div>
+            <div class="field field-wide form-actions"><button type="submit" class="btn btn-primary btn-lg">Log in</button></div>
+            <div id="hLoginMsg" class="form-message"></div>
+          </form>
+          <p class="muted" style="margin-top:10px">New hospital? <button type="button" class="btn btn-ghost btn-sm" id="showHospitalRegister">Register your hospital</button></p>
+        </div>
+        <div class="panel" id="hospitalRegisterPanel" style="display:none">
+          <h2>Register your hospital</h2>
+          <p class="muted">Creates a hospital account. Choose a subscription plan afterwards on the Subscribe page to post blood requests.</p>
+          <form id="hospitalRegisterForm" class="form-grid" novalidate style="margin-top:12px">
+            <div class="field"><label for="hRegName">Hospital name</label><input type="text" id="hRegName" autocomplete="off" /></div>
+            <div class="field"><label for="hRegCity">City / area</label><input type="text" id="hRegCity" autocomplete="off" /></div>
+            <div class="field"><label for="hRegEmail">Email</label><input type="text" id="hRegEmail" autocomplete="off" /></div>
+            <div class="field"><label for="hRegPhone">Phone</label><input type="text" id="hRegPhone" autocomplete="off" /></div>
+            <div class="field"><label for="hRegPassword">Password</label><input type="password" id="hRegPassword" autocomplete="off" /></div>
+            <div class="field field-wide">
+              <label>Pin your hospital's location (shown on the maps)</label>
+              <div id="hRegMap" class="map-canvas small"></div>
+              <span class="dist" id="hRegLocText"></span>
+            </div>
+            <div class="field field-wide form-actions"><button type="submit" class="btn btn-primary btn-lg">Create hospital account</button></div>
+            <div id="hRegMsg" class="form-message"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Pharmacy login / register -->
+      <div class="tab-panel" id="role-pharmacy">
+        <div class="panel">
+          <h2>Pharmacy log in</h2>
+          <form id="pharmacyLoginForm" class="form-grid" novalidate style="margin-top:12px">
+            <div class="field"><label for="pLoginEmail">Email</label><input type="text" id="pLoginEmail" autocomplete="off" /></div>
+            <div class="field"><label for="pLoginPassword">Password</label><input type="password" id="pLoginPassword" autocomplete="off" /></div>
+            <div class="field field-wide form-actions"><button type="submit" class="btn btn-primary btn-lg">Log in</button></div>
+            <div id="pLoginMsg" class="form-message"></div>
+          </form>
+          <p class="muted" style="margin-top:10px">New pharmacy? <button type="button" class="btn btn-ghost btn-sm" id="showPharmacyRegister">Register your pharmacy</button></p>
+        </div>
+        <div class="panel" id="pharmacyRegisterPanel" style="display:none">
+          <h2>Register your pharmacy</h2>
+          <p class="muted">Creates a pharmacy account. Choose a subscription plan afterwards on the Subscribe page to list medicines.</p>
+          <form id="pharmacyRegisterForm" class="form-grid" novalidate style="margin-top:12px">
+            <div class="field"><label for="pRegName">Pharmacy name</label><input type="text" id="pRegName" autocomplete="off" /></div>
+            <div class="field"><label for="pRegCity">City / area</label><input type="text" id="pRegCity" autocomplete="off" /></div>
+            <div class="field"><label for="pRegEmail">Email</label><input type="text" id="pRegEmail" autocomplete="off" /></div>
+            <div class="field"><label for="pRegPhone">Phone</label><input type="text" id="pRegPhone" autocomplete="off" /></div>
+            <div class="field"><label for="pRegPassword">Password</label><input type="password" id="pRegPassword" autocomplete="off" /></div>
+            <div class="field field-wide">
+              <label>Pin your pharmacy's location (shown on the maps)</label>
+              <div id="pRegMap" class="map-canvas small"></div>
+              <span class="dist" id="pRegLocText"></span>
+            </div>
+            <div class="field field-wide form-actions"><button type="submit" class="btn btn-primary btn-lg">Create pharmacy account</button></div>
+            <div id="pRegMsg" class="form-message"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Admin login -->
+      <div class="tab-panel" id="role-admin">
+        <div class="panel">
+          <h2>Site administrator</h2>
+          <p class="muted">Vets new hospitals and pharmacies, and resets passwords for people who are locked out. The password is set with ADMIN_PASSWORD in the server's .env file.</p>
+          <form id="adminLoginForm" class="form-grid" novalidate style="margin-top:12px">
+            <div class="field field-wide"><label for="aLoginPassword">Admin password</label><input type="password" id="aLoginPassword" autocomplete="off" /></div>
+            <div class="field field-wide form-actions"><button type="submit" class="btn btn-primary btn-lg">Log in as admin</button></div>
+            <div id="aLoginMsg" class="form-message"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Donor profile (hidden until logged in) -->
+    <section id="donorPanel" style="display:none">
+      <div class="panel profile-header profile-donor">
+        <div class="profile-cover"><div class="profile-avatar-lg" id="dAvatarBox">?</div></div>
+        <div class="profile-body">
+          <div class="profile-name-row"><h2 id="dName"></h2></div>
+          <p class="muted" id="dSub"></p>
+          <div class="profile-stats">
+            <div class="pstat"><b id="dCount">0</b><span>donations</span></div>
+            <div class="pstat"><b id="dLives">0</b><span>lives potentially helped</span></div>
+            <div class="pstat"><b id="dNextShort">-</b><span>next eligible</span></div>
+          </div>
+          <div class="photo-upload-row">
+            <label class="btn btn-ghost btn-sm">Change photo<input type="file" id="dAvatarInput" accept="image/*" /></label>
+            <button class="btn btn-primary btn-sm" id="recordDonation">I donated today</button>
+            <a class="btn btn-ghost btn-sm" href="donate.html">Update my details</a>
+            <button class="btn btn-ghost btn-sm" id="logoutBtn">Log out</button>
+          </div>
+          <div class="bio-row">
+            <label class="s-label" for="dBioArea">About me</label>
+            <textarea id="dBioArea" rows="2" placeholder="A short bio shown on your profile..."></textarea>
+            <button class="btn btn-ghost btn-sm" id="dBioSave">Save bio</button>
+          </div>
+          <details class="pw-change">
+            <summary>Change password</summary>
+            <form id="dPwForm" class="form-grid" novalidate>
+              <div class="field"><label for="dPwCur">Current password</label><input type="password" id="dPwCur" autocomplete="current-password" /></div>
+              <div class="field"><label for="dPwNew">New password</label><input type="password" id="dPwNew" autocomplete="new-password" /></div>
+              <div class="field field-wide form-actions"><button type="submit" class="btn btn-ghost btn-sm">Update password</button></div>
+              <div id="dPwMsg" class="form-message"></div>
+            </form>
+          </details>
+        </div>
+      </div>
+
+      <div class="dash-grid" style="margin-top:16px">
+        <div class="dash-item"><div class="k">Blood group</div><div class="v" id="dGroup"></div></div>
+        <div class="dash-item"><div class="k">Age</div><div class="v" id="dAge"></div></div>
+        <div class="dash-item"><div class="k">Contact</div><div class="v" id="dContact"></div></div>
+        <div class="dash-item"><div class="k">City / area</div><div class="v" id="dCity"></div></div>
+        <div class="dash-item"><div class="k">Registered on</div><div class="v" id="dRegistered"></div></div>
+        <div class="dash-item"><div class="k">Screening certificate</div><div class="v"><span class="pill wait" id="dVerify"></span></div></div>
+      </div>
+
+      <div class="map-layout" style="margin-top:16px">
+        <div class="panel">
+          <h3>Your donation history</h3>
+          <ul class="history-list" id="dHistory"></ul>
+        </div>
+        <div class="panel">
+          <h3>Your saved location</h3>
+          <div id="dMap" class="map-canvas small"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>My medicine orders</h3>
+        <p class="muted">Prescription orders show their pharmacist review status here. Approved and reserved orders can be paid online.</p>
+        <div id="dPurchases" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- Hospital profile (hidden until logged in) -->
+    <section id="hospitalPanel" style="display:none">
+      <div class="panel profile-header profile-hospital">
+        <div class="profile-cover"><div class="profile-avatar-lg" id="hAvatarBox">?</div></div>
+        <div class="profile-body">
+          <div class="profile-name-row"><h2 id="hName"></h2><span id="hTierBadge"></span></div>
+          <p class="muted" id="hSub"></p>
+          <div class="profile-stats">
+            <div class="pstat"><b id="hStatRequests">0</b><span>blood requests posted</span></div>
+            <div class="pstat"><b id="hStatDrones">0</b><span>drone requests</span></div>
+            <div class="pstat"><b id="hStatVerified">0</b><span>verified donors on the platform</span></div>
+          </div>
+          <div id="hExpiryBanner"></div>
+          <div class="photo-upload-row">
+            <label class="btn btn-ghost btn-sm">Change photo<input type="file" id="hAvatarInput" accept="image/*" /></label>
+            <a class="btn btn-primary btn-sm" href="subscribe.html">Manage subscription</a>
+            <a class="btn btn-ghost btn-sm" href="directory.html#requests">Post a blood request</a>
+            <button class="btn btn-ghost btn-sm" id="hLogoutBtn">Log out</button>
+          </div>
+          <div class="bio-row">
+            <label class="s-label" for="hBioArea">About this hospital</label>
+            <textarea id="hBioArea" rows="2" placeholder="A short description shown on your profile..."></textarea>
+            <button class="btn btn-ghost btn-sm" id="hBioSave">Save bio</button>
+          </div>
+          <details class="pw-change">
+            <summary>Change password</summary>
+            <form id="hPwForm" class="form-grid" novalidate>
+              <div class="field"><label for="hPwCur">Current password</label><input type="password" id="hPwCur" autocomplete="current-password" /></div>
+              <div class="field"><label for="hPwNew">New password</label><input type="password" id="hPwNew" autocomplete="new-password" /></div>
+              <div class="field field-wide form-actions"><button type="submit" class="btn btn-ghost btn-sm">Update password</button></div>
+              <div id="hPwMsg" class="form-message"></div>
+            </form>
+          </details>
+        </div>
+      </div>
+
+      <div class="tabs" id="hospitalTabs" style="margin-top:18px">
+        <button class="tab active" data-tab="hReqTab">Blood requests</button>
+        <button class="tab" data-tab="hDroneTab">Drone requests</button>
+        <button class="tab" data-tab="hVerifyTab">Verification queue</button>
+      </div>
+      <div class="tab-panel active" id="hReqTab">
+        <div class="panel"><div class="hosp-grid" id="hospitalRequestList"></div></div>
+      </div>
+      <div class="tab-panel" id="hDroneTab">
+        <div class="panel" id="hospitalDroneBox"></div>
+      </div>
+      <div class="tab-panel" id="hVerifyTab">
+        <div class="panel"><div class="hosp-grid" id="verifyQueueList"></div></div>
+      </div>
+    </section>
+
+    <!-- Pharmacy profile (hidden until logged in) -->
+    <section id="pharmacyPanel" style="display:none">
+      <div class="panel profile-header profile-pharmacy">
+        <div class="profile-cover"><div class="profile-avatar-lg" id="phAvatarBox">?</div></div>
+        <div class="profile-body">
+          <div class="profile-name-row"><h2 id="phName"></h2><span id="phTierBadge"></span></div>
+          <p class="muted" id="phSub"></p>
+          <div class="profile-stats">
+            <div class="pstat"><b id="phStatMeds">0</b><span>medicines in catalogue</span></div>
+            <div class="pstat"><b id="phStatUnits">0</b><span>units sold</span></div>
+            <div class="pstat"><b id="phStatRevenue">RWF 0</b><span>revenue</span></div>
+          </div>
+          <div id="phExpiryBanner"></div>
+          <div class="photo-upload-row">
+            <label class="btn btn-ghost btn-sm">Change photo<input type="file" id="phAvatarInput" accept="image/*" /></label>
+            <a class="btn btn-primary btn-sm" href="subscribe.html">Manage subscription</a>
+            <button class="btn btn-ghost btn-sm" id="phLogoutBtn">Log out</button>
+          </div>
+          <div class="bio-row">
+            <label class="s-label" for="phBioArea">About this pharmacy</label>
+            <textarea id="phBioArea" rows="2" placeholder="A short description shown on your profile..."></textarea>
+            <button class="btn btn-ghost btn-sm" id="phBioSave">Save bio</button>
+          </div>
+          <details class="pw-change">
+            <summary>Change password</summary>
+            <form id="phPwForm" class="form-grid" novalidate>
+              <div class="field"><label for="phPwCur">Current password</label><input type="password" id="phPwCur" autocomplete="current-password" /></div>
+              <div class="field"><label for="phPwNew">New password</label><input type="password" id="phPwNew" autocomplete="new-password" /></div>
+              <div class="field field-wide form-actions"><button type="submit" class="btn btn-ghost btn-sm">Update password</button></div>
+              <div id="phPwMsg" class="form-message"></div>
+            </form>
+          </details>
+        </div>
+      </div>
+
+      <div class="tabs" id="pharmacyTabs" style="margin-top:18px">
+        <button class="tab active" data-tab="phMedsTab">Stock</button>
+        <button class="tab" data-tab="phOrdersTab">Orders &amp; prescriptions</button>
+        <button class="tab" data-tab="phSalesTab">Sales</button>
+      </div>
+      <div class="tab-panel active" id="phMedsTab">
+        <div class="panel"><div class="hosp-grid" id="pharmacyMedList"></div></div>
+      </div>
+      <div class="tab-panel" id="phOrdersTab">
+        <div class="panel" id="pharmacyOrdersBox"></div>
+      </div>
+      <div class="tab-panel" id="phSalesTab">
+        <div class="panel" id="pharmacySalesBox"></div>
+      </div>
+    </section>
+
+    <!-- Administrator panel (hidden until logged in as admin) -->
+    <section id="adminPanel" style="display:none">
+      <div class="panel profile-header profile-admin">
+        <div class="profile-cover"><div class="profile-avatar-lg">A</div></div>
+        <div class="profile-body">
+          <div class="profile-name-row"><h2>Site administrator</h2></div>
+          <p class="muted">Vet new hospitals and pharmacies, revoke approvals, reset passwords and read feedback.</p>
+          <div class="photo-upload-row">
+            <button class="btn btn-ghost btn-sm" id="aLogoutBtn">Log out</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Platform overview</h3>
+        <div class="dash-grid" id="adminStats" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Awaiting approval</h3>
+        <p class="muted">New hospitals and pharmacies cannot subscribe, post blood requests or sell medicines until you approve them. Approval starts their free 7-day trial. Check they are a real, licensed organisation first.</p>
+        <div class="hosp-grid" id="adminPending" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Medical documents review</h3>
+        <p class="muted">Screening certificates and prescriptions, with the automatic AI plausibility check. Flagged documents (duplicates, wrong document type, unreadable) appear first - your decision is final, the AI only flags.</p>
+        <div class="hosp-grid" id="adminDocs" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel">
+        <h3>All accounts</h3>
+        <p class="muted">Approved organisations and registered donors. "Reset password" creates a temporary password to give the account holder privately.</p>
+        <div class="hosp-grid" id="adminAccounts" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Feedback</h3>
+        <div class="hosp-grid" id="adminFeedback" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Audit log</h3>
+        <p class="muted">A record of recent administrator actions (approvals, password resets, document reviews, moderation).</p>
+        <div id="adminAudit" style="margin-top:10px"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project.</p>
+  </footer>
+
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

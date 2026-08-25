@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Guide - Blood Donation Centre</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" class="active" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <h1 data-i18n="health.title">Health routines, advice and treatment</h1>
+      <p class="lead">General guidance for four common conditions. Pick a condition to read its routine, advice and usual treatment.</p>
+    </section>
+
+    <div class="disclaimer">
+      This information is general and educational only. It is not a substitute for
+      professional medical advice. Always speak to a doctor about your own treatment.
+    </div>
+
+    <div class="tabs" id="healthTabs">
+      <button class="tab active" data-tab="diabetes">Diabetes</button>
+      <button class="tab" data-tab="obesity">Obesity</button>
+      <button class="tab" data-tab="asthma">Asthma</button>
+      <button class="tab" data-tab="hypertension">Hypertension</button>
+      <button class="tab" data-tab="anemia">Anemia</button>
+      <button class="tab" data-tab="heart">Heart health</button>
+    </div>
+
+    <!-- Diabetes -->
+    <section class="tab-panel active" id="diabetes">
+      <h2>Diabetes</h2>
+      <p class="muted">High blood sugar caused by problems with insulin.</p>
+      <div class="advice-grid">
+        <div class="advice-card">
+          <h3>Daily routine</h3>
+          <ul>
+            <li>Check blood sugar as advised by your doctor.</li>
+            <li>Eat meals at regular times, avoid skipping meals.</li>
+            <li>Aim for about 30 minutes of walking or activity.</li>
+            <li>Take medication at the same time each day.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Advice</h3>
+          <ul>
+            <li>Reduce sugary drinks, sweets and white bread.</li>
+            <li>Choose whole grains, vegetables and lean protein.</li>
+            <li>Care for your feet and check for cuts.</li>
+            <li>Keep regular eye and kidney check-ups.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Usual treatment</h3>
+          <ul>
+            <li>Lifestyle and diet changes first.</li>
+            <li>Tablets such as metformin (as prescribed).</li>
+            <li>Insulin injections for some patients.</li>
+            <li>Regular monitoring of HbA1c levels.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Obesity -->
+    <section class="tab-panel" id="obesity">
+      <h2>Obesity</h2>
+      <p class="muted">Excess body fat that can raise the risk of other illnesses.</p>
+      <div class="advice-grid">
+        <div class="advice-card">
+          <h3>Daily routine</h3>
+          <ul>
+            <li>Plan balanced meals and controlled portions.</li>
+            <li>Be active for 30 to 60 minutes most days.</li>
+            <li>Drink water instead of sugary drinks.</li>
+            <li>Get regular, good quality sleep.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Advice</h3>
+          <ul>
+            <li>Set small, realistic weight goals.</li>
+            <li>Eat more vegetables, fruit and fibre.</li>
+            <li>Limit fried food, fast food and snacks.</li>
+            <li>Track your progress and stay consistent.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Usual treatment</h3>
+          <ul>
+            <li>Diet and exercise programme with support.</li>
+            <li>Advice from a dietitian.</li>
+            <li>Medication in some cases (as prescribed).</li>
+            <li>Surgery only for severe cases, decided by doctors.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Asthma -->
+    <section class="tab-panel" id="asthma">
+      <h2>Asthma</h2>
+      <p class="muted">A condition where the airways narrow and make breathing hard.</p>
+      <div class="advice-grid">
+        <div class="advice-card">
+          <h3>Daily routine</h3>
+          <ul>
+            <li>Take your preventer inhaler as prescribed.</li>
+            <li>Keep your reliever inhaler with you.</li>
+            <li>Warm up before exercise.</li>
+            <li>Follow your written asthma action plan.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Advice</h3>
+          <ul>
+            <li>Avoid triggers like smoke, dust and pollen.</li>
+            <li>Keep your home clean and well aired.</li>
+            <li>Get the flu vaccine if advised.</li>
+            <li>Learn the signs of an attack early.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Usual treatment</h3>
+          <ul>
+            <li>Reliever inhalers (e.g. salbutamol) for symptoms.</li>
+            <li>Preventer inhalers (steroids) taken daily.</li>
+            <li>Spacer devices to help inhaler use.</li>
+            <li>Emergency care for severe attacks.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hypertension -->
+    <section class="tab-panel" id="hypertension">
+      <h2>Hypertension (high blood pressure)</h2>
+      <p class="muted">Blood pressure that stays higher than the healthy range.</p>
+      <div class="advice-grid">
+        <div class="advice-card">
+          <h3>Daily routine</h3>
+          <ul>
+            <li>Take blood pressure medicine at the same time daily.</li>
+            <li>Check your blood pressure regularly.</li>
+            <li>Do light exercise such as walking.</li>
+            <li>Practise relaxation to manage stress.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Advice</h3>
+          <ul>
+            <li>Reduce salt in your food.</li>
+            <li>Eat more fruit and vegetables.</li>
+            <li>Limit alcohol and stop smoking.</li>
+            <li>Keep a healthy weight.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Usual treatment</h3>
+          <ul>
+            <li>Lifestyle changes first.</li>
+            <li>Medicines such as ACE inhibitors or diuretics.</li>
+            <li>Regular blood pressure monitoring.</li>
+            <li>Treating other risks like high cholesterol.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Anemia -->
+    <section class="tab-panel" id="anemia">
+      <h2>Anemia</h2>
+      <p class="muted">Not enough healthy red blood cells to carry oxygen around the body - the condition most directly linked to blood donation and iron levels.</p>
+      <div class="advice-grid">
+        <div class="advice-card">
+          <h3>Daily routine</h3>
+          <ul>
+            <li>Take iron or vitamin supplements exactly as prescribed.</li>
+            <li>Pair iron-rich meals with vitamin C to help absorption.</li>
+            <li>Rest when tired rather than pushing through fatigue.</li>
+            <li>Track how you feel - dizziness or breathlessness is worth reporting.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Advice</h3>
+          <ul>
+            <li>Eat iron-rich foods: beans, leafy greens, red meat, fortified cereals.</li>
+            <li>Avoid donating blood again until you are confirmed eligible.</li>
+            <li>Tea and coffee around meals can reduce iron absorption - space them out.</li>
+            <li>See the <a href="medicines.html">Medicines page</a> for iron, folic acid and B12 supplements.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Usual treatment</h3>
+          <ul>
+            <li>Iron supplements for iron-deficiency anaemia.</li>
+            <li>Folic acid or vitamin B12 for other types.</li>
+            <li>Treating the underlying cause (e.g. heavy bleeding).</li>
+            <li>Blood transfusion only for severe cases, decided by a doctor.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Heart health -->
+    <section class="tab-panel" id="heart">
+      <h2>Heart health</h2>
+      <p class="muted">Keeping the heart and blood vessels healthy - closely linked to blood pressure, cholesterol and weight.</p>
+      <div class="advice-grid">
+        <div class="advice-card">
+          <h3>Daily routine</h3>
+          <ul>
+            <li>Aim for at least 30 minutes of activity most days.</li>
+            <li>Take heart-related medication at the same time each day.</li>
+            <li>Avoid smoking and limit alcohol.</li>
+            <li>Manage stress with rest, sleep and relaxation.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Advice</h3>
+          <ul>
+            <li>Follow a heart-healthy diet: more vegetables, whole grains and fish.</li>
+            <li>Reduce salt, sugar and saturated fat.</li>
+            <li>Keep a healthy weight and waist size.</li>
+            <li>Know your blood pressure and cholesterol numbers.</li>
+          </ul>
+        </div>
+        <div class="advice-card">
+          <h3>Usual treatment</h3>
+          <ul>
+            <li>Lifestyle changes are the first step for most people.</li>
+            <li>Medicines such as statins or blood-pressure tablets as prescribed.</li>
+            <li>Regular check-ups to monitor heart health.</li>
+            <li>Emergency care immediately for chest pain or heart-attack signs.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Health guideline videos -->
+    <section class="panel" style="margin-top:30px">
+      <h2>Health guideline videos</h2>
+      <p class="muted">Short videos with general health and blood-donation guidance. Watch them right here.</p>
+      <div class="video-grid">
+        <div class="video-card">
+          <div class="video-frame">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/Q55LrC7vijM?si=6BDrhun4CLNRIS52" title="What happens when you donate blood" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+          <div class="v-body"><h3>What happens when you donate blood</h3><p>A simple walk-through of the donation process.</p></div>
+        </div>
+        <div class="video-card">
+          <div class="video-frame">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/uan3Aj0bHKc?si=CIbAmongcMVZglaF" title="Healthy eating basics" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+          <div class="v-body"><h3>Healthy eating basics</h3><p>Building balanced meals to stay healthy.</p></div>
+        </div>
+        <div class="video-card">
+          <div class="video-frame">
+            <iframe src="https://www.youtube.com/embed/hmFQqjMF_f0" title="Understanding blood pressure" loading="lazy" allowfullscreen></iframe>
+          </div>
+          <div class="v-body"><h3>Understanding blood pressure</h3><p>What the numbers mean and how to keep them healthy.</p></div>
+        </div>
+        <div class="video-card">
+          <div class="video-frame">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/KEhbYNmY3N4?si=zFov1BEk-U7yRNkT" title="Why exercise matters" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+          <div class="v-body"><h3>Why exercise matters</h3><p>How daily activity supports your whole body.</p></div>
+        </div>
+        <div class="video-card">
+          <div class="video-frame">
+            <iframe src="https://www.youtube.com/embed/w0JXc7WYK1Q" title="Anemia explained: types, causes, symptoms and treatment" loading="lazy" allowfullscreen></iframe>
+          </div>
+          <div class="v-body"><h3>Anemia explained</h3><p>Types, causes, symptoms and treatment options - relevant background for donors and recipients alike.</p></div>
+        </div>
+        <div class="video-card">
+          <div class="video-frame">
+            <iframe src="https://www.youtube.com/embed/0rxsjNSHD_M" title="High blood pressure: what to eat and avoid" loading="lazy" allowfullscreen></iframe>
+          </div>
+          <div class="v-body"><h3>High blood pressure: what to eat and avoid</h3><p>A practical DASH-diet style guide to eating for healthy blood pressure.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Not a real medical service.</p>
+  </footer>
+
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

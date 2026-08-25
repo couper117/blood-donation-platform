@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medicines - Rwanda Blood Donation Centre</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" class="active" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <h1 data-i18n="medicines.title">Medicines</h1>
+      <p class="lead">Only medicines for the health cases this platform covers - anemia &amp; blood support, diabetes, hypertension, asthma, heart health and obesity - sold by registered pharmacies. Medicines marked <strong>Prescription needed</strong> require you to upload your doctor's prescription before buying. Pay securely online (Mobile Money / card) or reserve and pay at the pharmacy.</p>
+    </section>
+    <div class="disclaimer">This information is general and educational only. It is not a substitute for professional medical advice - always follow your doctor's or pharmacist's instructions.</div>
+
+    <div id="medPayMsg" class="form-message" role="status" aria-live="polite" style="margin-bottom:12px"></div>
+
+    <div class="category-filter" id="medCategoryFilter"></div>
+    <div class="feature-grid med-grid" id="medicineGrid"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Prices are illustrative only.</p>
+  </footer>
+
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

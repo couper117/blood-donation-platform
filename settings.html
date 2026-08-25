@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings - Rwanda Blood Donation Centre</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon active" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main id="settingsPage">
+    <section class="page-head">
+      <h1 data-i18n="settings.title">Settings</h1>
+      <p class="lead" data-i18n="settings.lead">The essentials: your language and your theme.</p>
+    </section>
+
+    <div id="settingsToast" class="form-message" style="margin-bottom:12px"></div>
+
+    <section class="panel" id="language">
+      <h2 data-i18n="settings.language.title">Language</h2>
+      <p class="muted" data-i18n="settings.language.desc">Choose the language for menus and key pages.</p>
+      <div class="i18n-note" id="i18nNote" style="display:none" data-i18n="settings.i18nNote">
+        Detailed page content is currently shown in English only; full translation for this section is coming soon.
+      </div>
+      <div class="setting-row" style="border-bottom:none">
+        <div class="s-label">English / Fran&ccedil;ais / Kinyarwanda</div>
+        <select class="settings-select" id="optLanguage">
+          <option value="en">English</option>
+          <option value="fr">Fran&ccedil;ais</option>
+          <option value="rw">Kinyarwanda</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="panel" id="appearance">
+      <h2 data-i18n="settings.appearance.title">Appearance</h2>
+      <div class="setting-row" style="border-bottom:none">
+        <div><div class="s-label" data-i18n="settings.dark.label">Dark mode</div><div class="s-desc" data-i18n="settings.dark.desc">Switch the whole site to a dark colour scheme.</div></div>
+        <label class="switch"><input type="checkbox" id="optTheme" /><span class="track"></span></label>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Settings are saved on this device only.</p>
+  </footer>
+
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

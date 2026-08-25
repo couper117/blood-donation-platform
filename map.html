@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Map - Rwanda Blood Donation Centre</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" class="active" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <h1 data-i18n="map.title">Live map of Rwanda</h1>
+      <p class="lead">A real, navigable map of Rwanda showing hospitals in every province, pharmacies, registered donor locations and blood supply/demand by district. Click any point for details.</p>
+      <p class="hint">Drag to pan, scroll or pinch to zoom, and drag with the right mouse button (or Ctrl + drag, or two fingers on touch) to rotate and tilt the view - or use the compass control in the top-right corner.</p>
+    </section>
+
+    <div class="map-legend">
+      <span class="legend-item"><span class="dot dot-supply"></span> Supply (enough blood)</span>
+      <span class="legend-item"><span class="dot dot-balanced"></span> Balanced</span>
+      <span class="legend-item"><span class="dot dot-demand"></span> Demand (blood needed)</span>
+      <span class="legend-item"><span class="dot" style="background:#1b74e4"></span> Hospital</span>
+      <span class="legend-item"><span class="dot" style="background:#7a4fc9"></span> Pharmacy</span>
+      <span class="legend-item"><span class="dot" style="background:#d7263d"></span> Donor location</span>
+    </div>
+
+    <div class="map-layout">
+      <div>
+        <div id="rwMap" class="map-canvas"></div>
+        <p class="map-stat" id="mapHospitalNote"></p>
+        <p class="map-stat">Registered donors currently shown on the map: <strong id="donorCount">0</strong>.
+        Register on the <a href="donate.html">Donate</a> page to add your location here.</p>
+      </div>
+
+      <aside class="map-info" id="mapInfo">
+        <h3>Area details</h3>
+        <p class="muted">Click a coloured district marker on the map to see how much blood is available there and how much is needed.</p>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Not a real medical service.</p>
+  </footer>
+
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Services - Rwanda Blood Donation Centre</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" class="active" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <h1 data-i18n="services.title">Services</h1>
+      <p class="lead" data-i18n="services.lead">Track blood-supply drones across Rwanda, and support the blood service with a real financial donation.</p>
+    </section>
+
+    <div class="tabs" id="servicesTabs">
+      <button class="tab" data-tab="drone">Drone delivery</button>
+      <button class="tab" data-tab="funds">Donate funds</button>
+    </div>
+
+    <!-- ===== Drone tab ===== -->
+    <div data-tab-panel="drone">
+      <div class="drone-layout">
+        <div id="droneMap" class="map-canvas"></div>
+        <div class="drone-panel">
+          <span class="drone-badge flying" id="droneStatus">Preparing for launch</span>
+          <h2>Live delivery</h2>
+          <p class="muted">A blood-supply drone flying from the Muhanga distribution centre to Ruhengeri Referral Hospital.</p>
+          <div class="progress-track" style="margin-top:14px"><div class="progress-fill" id="droneProgress">0%</div></div>
+          <div class="info-row"><span>Estimated arrival</span><span id="droneEta">--</span></div>
+          <div class="info-row"><span>Route distance</span><span id="droneDist">--</span></div>
+          <div class="info-row"><span>Cruise speed</span><span id="droneSpeed">--</span></div>
+          <div class="info-row"><span>Payload</span><span id="dronePayload">--</span></div>
+        </div>
+      </div>
+
+      <section class="panel" style="margin-top:26px" id="droneRequestSection">
+        <h2>Request priority drone delivery</h2>
+        <p class="muted">Hospitals with an active Premium subscription can request priority drone delivery of blood.</p>
+        <div id="droneRequestBox"><p class="muted">Checking your account...</p></div>
+      </section>
+    </div>
+
+    <!-- ===== Funds tab ===== -->
+    <div data-tab-panel="funds" style="display:none">
+      <section class="fund-hero">
+        <h1>Support blood services in Rwanda</h1>
+        <p style="max-width:60ch;margin-top:8px;opacity:.95">
+          Your donation supports testing kits, cold storage, drone operations and donor outreach.
+          Payments are processed securely by Flutterwave (Mobile Money or card) - this is a real payment.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Community fundraising goal</h2>
+        <div class="fund-progress"><div class="bar" id="fundBar">0%</div></div>
+        <div class="fund-row"><span id="fundRaised">RWF 0</span><span id="fundGoal">RWF 10,000,000</span></div>
+      </section>
+
+      <section class="panel">
+        <h2>Donate now</h2>
+        <p class="muted">Choose an amount (RWF) and pay securely by Mobile Money or card.</p>
+        <form id="fundForm" class="form-grid" novalidate style="margin-top:10px">
+          <div class="field">
+            <label for="fundName">Your name (optional)</label>
+            <input type="text" id="fundName" placeholder="Anonymous" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="fundAmount">Amount (RWF)</label>
+            <input type="number" id="fundAmount" min="500" step="500" placeholder="e.g. 5000" />
+          </div>
+          <div class="field field-wide">
+            <div class="amount-chips">
+              <button type="button" class="amount-chip" data-amt="1000">RWF 1,000</button>
+              <button type="button" class="amount-chip" data-amt="5000">RWF 5,000</button>
+              <button type="button" class="amount-chip" data-amt="10000">RWF 10,000</button>
+              <button type="button" class="amount-chip" data-amt="50000">RWF 50,000</button>
+            </div>
+          </div>
+          <div class="field field-wide form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">Donate securely (Mobile Money / card)</button>
+          </div>
+          <div id="fundMessage" class="form-message" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Drone tracking is simulated; payments are real when configured.</p>
+  </footer>
+
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

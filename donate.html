@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Donate - Rwanda Blood Donation Centre</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="donate.html" class="active" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <span class="badge">Save lives near you</span>
+        <h1>Donate blood, <span class="accent">give someone more time</span></h1>
+        <p class="lead">
+          Offer to donate in under a minute - <strong>no account needed</strong>.
+          Your offer goes on the public Request Board for 30 days so hospitals can
+          reach you. If you donate regularly, you can also create a full donor
+          account with a profile, history and verification - that is a separate,
+          optional step.
+        </p>
+        <div class="hero-actions">
+          <a href="#donate" class="btn btn-primary">Offer to donate</a>
+          <a href="map.html" class="btn btn-ghost">See where blood is needed</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <h3>Why donate</h3>
+        <ul class="tick-list">
+          <li>One donation can help up to three patients.</li>
+          <li>Blood cannot be manufactured - it only comes from donors.</li>
+          <li>Most healthy adults can donate every 56 days.</li>
+          <li>Your details stay private and secure.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Donation timer -->
+    <section class="panel" id="timer">
+      <h2 data-i18n="donate.timer.title">Donation session timer</h2>
+      <p class="muted">A whole-blood donation usually takes about 8 to 10 minutes. Use this timer during your session.</p>
+      <div class="timer-box">
+        <div class="timer-display" id="timerDisplay">10:00</div>
+        <div class="timer-controls">
+          <label for="timerMinutes">Minutes</label>
+          <input type="number" id="timerMinutes" min="1" max="30" value="10" />
+          <button class="btn btn-primary" id="startTimer">Start</button>
+          <button class="btn btn-ghost" id="pauseTimer">Pause</button>
+          <button class="btn btn-ghost" id="resetTimer">Reset</button>
+        </div>
+        <p class="timer-note" id="timerNote"></p>
+      </div>
+    </section>
+
+    <!-- Flow A: donation offer - NO account is created -->
+    <section class="panel" id="donate">
+      <h2 data-i18n="donate.title">Offer to donate blood</h2>
+      <p class="muted">Takes under a minute, and <strong>no account is created</strong> - your offer simply appears on the public <a href="directory.html#requests">Request Board</a> for 30 days so hospitals can contact you. Your contact details are shown only to hospital accounts, not to the general public.</p>
+
+      <form id="offerForm" class="form-grid" novalidate style="margin-top:12px">
+        <div class="field">
+          <label for="offName">Full name</label>
+          <input type="text" id="offName" placeholder="Your full name" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="offGroup">Blood group</label>
+          <select id="offGroup">
+            <option value="">Select</option>
+            <option>A+</option><option>A-</option>
+            <option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option>
+            <option>O+</option><option>O-</option>
+            <option>I don't know</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="offContact">Phone or email</label>
+          <input type="text" id="offContact" placeholder="How hospitals reach you" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="offCity">City / area</label>
+          <input type="text" id="offCity" placeholder="e.g. Kigali, Musanze, Huye" autocomplete="off" />
+        </div>
+
+        <div class="field field-wide">
+          <label for="offNote">Short note (optional)</label>
+          <input type="text" id="offNote" placeholder="e.g. available on weekends" autocomplete="off" />
+        </div>
+
+        <div class="field field-wide">
+          <label>Pin your area on the map (optional)</label>
+          <p class="hint">Helps nearby hospitals find you. Click to drop a pin or use the button.</p>
+          <div id="offMap" class="map-canvas small"></div>
+          <div class="hosp-toolbar">
+            <button type="button" class="btn btn-ghost btn-sm" id="offUseLocation">Use my current location</button>
+            <span class="dist" id="offLocText"></span>
+          </div>
+        </div>
+
+        <div class="field field-wide form-actions">
+          <button type="submit" class="btn btn-primary btn-lg">Post my donation offer (no account)</button>
+        </div>
+
+        <div id="offerMessage" class="form-message" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <!-- Flow B: pointer to the separate, intentional account flow -->
+    <section class="panel">
+      <h2>Want a full donor account instead?</h2>
+      <p class="muted" style="margin-top:6px">
+        A donor <strong>account</strong> is separate from a donation offer. With an account you get a
+        profile with your donation history, hospital verification of your screening certificate,
+        a Verified badge, your own dashboard, and the ability to book blood requests.
+      </p>
+      <div class="dash-actions">
+        <a class="btn btn-primary" href="dashboard.html">Create donor account / Log in</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Not a real medical service.</p>
+  </footer>
+
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>

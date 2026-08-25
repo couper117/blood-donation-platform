@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("bdc_settings")||"{}");var r=document.documentElement;if(s.theme==="dark")r.setAttribute("data-theme","dark");if(s.language)r.lang=s.language;}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rwanda Blood Donation Centre - Home</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c8102e' d='M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Rwanda Blood Donation Centre</span>
+    </div>
+    <nav class="nav">
+      <a href="index.html" class="active" data-i18n="nav.home">Home</a>
+      <a href="donate.html" data-i18n="nav.donate">Donate</a>
+      <a href="directory.html" data-i18n="nav.directory">Directory</a>
+      <a href="map.html" data-i18n="nav.map">Live Map</a>
+      <a href="medicines.html" data-i18n="nav.medicines">Medicines</a>
+      <a href="health.html" data-i18n="nav.health">Health</a>
+      <a href="services.html" data-i18n="nav.services">Services</a>
+      <a href="subscribe.html" data-i18n="nav.subscribe">Subscribe</a>
+      <a href="dashboard.html" id="accountLink" data-i18n="nav.account">My Account</a>
+      <a href="settings.html" class="nav-icon" title="Settings" aria-label="Settings">&#9881;</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="home-hero">
+      <span class="badge" data-i18n="home.badge">Every drop counts &middot; Serving all of Rwanda</span>
+      <h1 data-i18n="home.h1">Give blood, save lives across Rwanda</h1>
+      <p>
+        The Rwanda Blood Donation Centre connects volunteer donors, hospitals and
+        the national blood service on one platform. Register as a donor and pin your
+        location, see live supply and demand on a real map of Rwanda, track blood-supply
+        drones, buy case-related medicines from registered pharmacies, and support the
+        service through funds - all in one place.
+      </p>
+      <div class="hero-actions">
+        <a href="donate.html" class="btn btn-primary btn-lg" data-i18n="home.cta1">Become a donor</a>
+        <a href="map.html" class="btn btn-ghost btn-lg" data-i18n="home.cta2">See the live map</a>
+      </div>
+    </section>
+
+    <!-- Quick numbers -->
+    <div class="stats-row">
+      <div class="stat-box"><div class="num">1&nbsp;in&nbsp;3</div><div class="lbl">people will need blood in their life</div></div>
+      <div class="stat-box"><div class="num">3</div><div class="lbl">lives helped by one donation</div></div>
+      <div class="stat-box"><div class="num">56</div><div class="lbl">days between donations</div></div>
+      <div class="stat-box"><div class="num">30&nbsp;min</div><div class="lbl">by drone to remote hospitals</div></div>
+    </div>
+
+    <h2 class="section-title">What you can do here</h2>
+    <p class="muted">A brief tour of everything this website offers.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Register &amp; pin your location</h3>
+        <p>Create your donor account, upload your screening certificate and pin your exact location on the map so we can reach you.</p>
+        <a href="donate.html">Donate now &rarr;</a>
+      </div>
+      <div class="feature-card">
+        <h3>Live map of Rwanda</h3>
+        <p>A real, interactive map showing every hospital in Rwanda, pharmacies, donor locations and which districts need blood.</p>
+        <a href="map.html">Open the map &rarr;</a>
+      </div>
+      <div class="feature-card">
+        <h3>Directory: donors, requests, hospitals &amp; pharmacies</h3>
+        <p>Registered donors, open blood requests (posted by hospitals only), and every hospital and pharmacy in the country.</p>
+        <a href="directory.html">Open the directory &rarr;</a>
+      </div>
+      <div class="feature-card">
+        <h3>Medicines with prescriptions</h3>
+        <p>Buy medicines for the health cases we cover - upload your prescription where required, pay online or at the pharmacy.</p>
+        <a href="medicines.html">Browse medicines &rarr;</a>
+      </div>
+      <div class="feature-card">
+        <h3>Health guidelines &amp; videos</h3>
+        <p>Read routines, advice and treatment for the conditions this platform covers, and watch short guideline videos.</p>
+        <a href="health.html">Read the guide &rarr;</a>
+      </div>
+      <div class="feature-card">
+        <h3>Services: drones &amp; funds</h3>
+        <p>Track blood-supply drones in real time, and support the blood service financially with a real, secure payment.</p>
+        <a href="services.html">Open services &rarr;</a>
+      </div>
+      <div class="feature-card">
+        <h3>Hospital &amp; pharmacy subscriptions</h3>
+        <p>Hospitals subscribe to post blood requests and use drone delivery; pharmacies subscribe to sell medicines here.</p>
+        <a href="subscribe.html">See plans &rarr;</a>
+      </div>
+      <div class="feature-card">
+        <h3>Your account dashboard</h3>
+        <p>Donors, hospitals and pharmacies each get their own profile page with all their information and tools.</p>
+        <a href="dashboard.html">My Account &rarr;</a>
+      </div>
+    </div>
+
+    <section class="panel" style="margin-top:40px">
+      <h2>About this platform</h2>
+      <p class="muted" style="margin-top:8px">
+        Rwanda is a world leader in delivering blood by drone to hospitals in hard-to-reach areas.
+        This platform brings that idea together with everyday donor management: it keeps donor
+        information confidential, shows where blood is needed most, and helps the right unit of
+        blood get to the right patient quickly - whether by road or by air. This is a demonstration
+        project built for educational purposes.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Rwanda Blood Donation Centre - demonstration project. Not a real medical service.</p>
+  </footer>
+
+  <script src="db.js"></script>
+  <script src="map-common.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="settings.js"></script>
+  <script src="script.js"></script>
+  <script src="widgets.js"></script>
+</body>
+</html>
