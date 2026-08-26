@@ -54,8 +54,6 @@ const DB = {
   /* ---------------- Session ---------------- */
   saveSession(role, id, token, displayName) {
     localStorage.setItem(SESSION_KEY, JSON.stringify({ role, id, token, displayName }));
-    // A fresh login always starts in the focused, role-only menu.
-    localStorage.setItem("bdc_navmode", "focused");
   },
   currentSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)) || null; } catch (e) { return null; }
@@ -63,7 +61,6 @@ const DB = {
   async logout() {
     try { await api("POST", "/api/auth/logout"); } catch (e) { /* token may already be gone */ }
     localStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem("bdc_navmode");
   },
   /* The logged-in account, verified against the server. Clears a stale session. */
   async currentAccount() {

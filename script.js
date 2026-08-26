@@ -191,11 +191,9 @@ function initHeaderAccount() {
 
 /* ------------------------------------------------------------
    Role-focused navigation: a logged-in person only sees the menu
-   items dedicated to their role, plus a "View full site" button
-   that switches the complete menu back on (and back again).
-   Logged-out visitors always see the full menu.
+   items dedicated to their role - nothing else. Logged-out
+   visitors always see the full public menu.
    ------------------------------------------------------------ */
-const NAV_MODE_KEY = "bdc_navmode"; // "focused" (default when logged in) | "full"
 const ROLE_NAV = {
   donor:    ["donate.html", "directory.html", "map.html", "medicines.html", "health.html", "dashboard.html", "settings.html"],
   hospital: ["directory.html", "map.html", "services.html", "subscribe.html", "dashboard.html", "settings.html"],
@@ -208,36 +206,19 @@ function applyRoleNav() {
   if (!nav) return;
   const s = DB.currentSession();
   const links = Array.from(nav.querySelectorAll("a"));
-  let toggle = nav.querySelector(".nav-mode-toggle");
+  const stale = nav.querySelector(".nav-mode-toggle");
+  if (stale) stale.remove();
 
   if (!s || !ROLE_NAV[s.role]) {
-    // Logged out: full menu, no toggle.
+    // Logged out: full public menu.
     links.forEach(a => { a.style.display = ""; });
-    if (toggle) toggle.remove();
     return;
   }
-
-  const mode = localStorage.getItem(NAV_MODE_KEY) === "full" ? "full" : "focused";
   const allowed = ROLE_NAV[s.role];
   links.forEach(a => {
     const href = (a.getAttribute("href") || "").split("#")[0];
-    a.style.display = (mode === "full" || allowed.indexOf(href) >= 0) ? "" : "none";
+    a.style.display = allowed.indexOf(href) >= 0 ? "" : "none";
   });
-
-  if (!toggle) {
-    toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "nav-mode-toggle";
-    toggle.addEventListener("click", function () {
-      localStorage.setItem(NAV_MODE_KEY,
-        localStorage.getItem(NAV_MODE_KEY) === "full" ? "focused" : "full");
-      applyRoleNav();
-    });
-    nav.appendChild(toggle);
-  }
-  toggle.textContent = mode === "focused" ? "View full site" : "Show my menu only";
-  toggle.title = mode === "focused"
-    ? "Show every page of the site" : "Show only the pages for your account";
 }
 
 /* ------------------------------------------------------------

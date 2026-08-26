@@ -151,8 +151,6 @@ const S = {
   "Hide password": { fr: "Masquer le mot de passe", rw: "Hisha ijambobanga" },
   "View on map": { fr: "Voir sur la carte", rw: "Reba ku ikarita" },
   "Use my current location": { fr: "Utiliser ma position actuelle", rw: "Koresha aho ndi ubu" },
-  "View full site": { fr: "Voir tout le site", rw: "Reba urubuga rwose" },
-  "Show my menu only": { fr: "Mon menu uniquement", rw: "Erekana menyu yanjye gusa" },
   "Blood bank": { fr: "Banque de sang", rw: "Ububiko bw'amaraso" },
   "Referral hospital": { fr: "Hôpital de référence", rw: "Ibitaro bikuru byakira abarwayi boherejwe" },
   "District hospital": { fr: "Hôpital de district", rw: "Ibitaro by'akarere" },

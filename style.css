@@ -129,25 +129,6 @@ a { color: var(--red); }
 .nav a.active { color: var(--red); background: var(--red-tint); font-weight: 650; }
 .nav a.nav-icon { font-size: 1.05rem; padding: 8px 11px; }
 
-/* "View full site" toggle - appears in the menu when logged in */
-.nav-mode-toggle {
-  border: 1px dashed var(--border-strong);
-  background: var(--bg);
-  color: var(--muted);
-  padding: 7px 13px;
-  border-radius: 999px;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 600;
-  font-size: 0.84rem;
-  margin-left: 6px;
-  transition: color 0.15s, border-color 0.15s;
-}
-.nav-mode-toggle:hover { color: var(--red); border-color: var(--red-border); }
-@media (max-width: 1020px) {
-  .nav-mode-toggle { margin: 4px 0 0; padding: 11px 14px; border-radius: var(--radius-sm); font-size: 0.95rem; }
-}
-
 /* Notification bell (injected by widgets.js when logged in) */
 .notif-wrap { position: relative; display: flex; align-items: center; }
 .notif-bell {

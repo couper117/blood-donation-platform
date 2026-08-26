@@ -237,3 +237,13 @@ Chrome extension STILL not connectable - fixes come from a systematic CSS audit 
 8. Phone grid tuning at <=460: hosp-grid/plan-grid 1 col, dash-grid/stats-row 2 cols,
    smaller h1/timer.
 Cache-busted to style.css?v=3 across all pages. Not committed yet (user commits on ask).
+
+## Round 10: "View full site" toggle removed (user request)
+Logged-in users now see ONLY their role menu - no toggle to expand to the full site.
+applyRoleNav simplified (still removes any stale .nav-mode-toggle for cached clients),
+bdc_navmode localStorage handling dropped from db.js, CSS + i18n entries removed.
+Logged-out visitors still get the full public menu. Site deployed live at
+blood-donation-platform.up.railway.app (verified: pages, seeds, Paypack config, AI chat,
+security rules). LIVE ADMIN PASSWORD IS STILL DEFAULT admin1234 - user repeatedly told
+to set ADMIN_PASSWORD in Railway Variables; also verify a Railway Volume at /data with
+DATA_DIR=/data or the DB is wiped each redeploy.
